@@ -5,21 +5,15 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.Timestamp;
 
-public class WritePostGUI extends JFrame{
-    private JFrame frame;
+public class WritePostGUI extends JPanel{
     private JTextArea postContentArea;
     private JComboBox<String> visibilityComboBox; // 수정된 부분
     private JButton submitButton;
     private JButton imageButton;
-    private String userId;
     private String uploadedImagePath = null; // 업로드된 이미지 경로
 
     public WritePostGUI() {
-        // Frame 설정
-        frame = new JFrame("Write a Post");
-        frame.setSize(400, 300);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
 
         // Post Content Area
         JLabel contentLabel = new JLabel("Post Content:");
@@ -46,8 +40,6 @@ public class WritePostGUI extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 submitPost();
-                // 현재 submit하는 창 닫기
-                dispose();
             }
         });
 
@@ -62,10 +54,8 @@ public class WritePostGUI extends JFrame{
         bottomPanel.add(imageButton); // 이미지 버튼 추가
         bottomPanel.add(submitButton);
 
-        frame.add(topPanel, BorderLayout.CENTER);
-        frame.add(bottomPanel, BorderLayout.SOUTH);
-
-        frame.setVisible(true);
+        add(topPanel, BorderLayout.CENTER);
+        add(bottomPanel, BorderLayout.SOUTH);
     }
 
     private void uploadImage() {
@@ -73,14 +63,14 @@ public class WritePostGUI extends JFrame{
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Select an Image");
         fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        int result = fileChooser.showOpenDialog(frame);
+        int result = fileChooser.showOpenDialog(this);
 
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
             uploadedImagePath = selectedFile.getAbsolutePath(); // 이미지 경로 저장
-            JOptionPane.showMessageDialog(frame, "Image selected: " + uploadedImagePath);
+            JOptionPane.showMessageDialog(this, "Image selected: " + uploadedImagePath);
         } else {
-            JOptionPane.showMessageDialog(frame, "No image selected.");
+            JOptionPane.showMessageDialog(this, "No image selected.");
         }
     }
 
@@ -93,7 +83,7 @@ public class WritePostGUI extends JFrame{
         // 2. Post 객체 생성
         long createdBy = 1;
         int likedCnt = 999;
-        String imagePath = "empty";
+        String imagePath = uploadedImagePath;
         // 현재 시간 생성
         java.sql.Timestamp currentTime = new java.sql.Timestamp(System.currentTimeMillis());
 

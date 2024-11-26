@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 public class LoginFrame extends JFrame {
     public LoginFrame() {
         setTitle("Login");
-        setSize(400, 300);
+        setSize(400, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 

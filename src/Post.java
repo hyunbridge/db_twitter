@@ -10,15 +10,6 @@ public class Post {
     private String imagePath;
     private boolean isPublic;
 
-
-    public Post(long postId, long createdBy, String content, int likedCnt, Timestamp createdAt, String username) {
-        this.postId = postId;
-        this.createdBy = createdBy;
-        this.content = content;
-        this.likedCnt = likedCnt;
-        this.createdAt = createdAt;
-        this.username = username;
-    }
     public Post(long createdBy, String content, int likedCnt, Timestamp createdAt,
                 String imagePath, boolean isPublic) {
         this.createdBy = createdBy;
@@ -27,6 +18,10 @@ public class Post {
         this.createdAt = createdAt;
         this.imagePath = imagePath;
         this.isPublic = isPublic;
+    }
+
+    public void plusLikedCnt(){
+        this.likedCnt++;
     }
 
     // Getters and Setters
@@ -59,8 +54,5 @@ public class Post {
     }
     public boolean getIsPublic(){
         return isPublic;
-    }
-    public void setUsername(String username) {
-        this.username = username;
     }
 }
