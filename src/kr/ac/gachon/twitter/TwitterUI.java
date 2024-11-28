@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -63,10 +65,9 @@ public class TwitterUI extends JFrame {
         writePostButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // WritePostPanel로 전환
-                WritePostGUI writePostPanel = new WritePostGUI();
+                WritePostGUI writePostPanel = new WritePostGUI(loggedInUser.getUid());
                 mainPanel.add(writePostPanel, "WritePost");
-                cardLayout.show(mainPanel, "WritePost"); // WritePost 화면 표시
+                cardLayout.show(mainPanel, "WritePost");
             }
         });
 

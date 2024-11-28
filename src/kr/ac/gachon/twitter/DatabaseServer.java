@@ -1,12 +1,14 @@
+package kr.ac.gachon.twitter;
+
 import java.sql.*;
 import java.util.*;
 
 public class DatabaseServer {
 
     // 데이터베이스 연결 정보
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/twitterapp"; // 실제 DB URL로 변경
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/dbTermProj"; // 실제 DB URL로 변경
     private static final String USER = "root"; // 본인 DB 사용자명
-    private static final String PASSWORD = "phsphg77";// 본인 DB 비밀번호
+    private static final String PASSWORD = "qwerty";// 본인 DB 비밀번호
 
 
     // 데이터베이스 연결 메서드
@@ -66,23 +68,25 @@ public class DatabaseServer {
     // 게시물 정보 가져오기 (Post 테이블에서)
     public List<Post> getPosts() {
         List<Post> posts = new ArrayList<>();
-
         String query = """
-    SELECT 
-        post.content, 
-        post.likedCnt, 
-        post.createdAt, 
-        post.createdBy,
-        post.imagePath, 
-        post.isPublic
-    FROM 
-        post
-    """;
-
+            SELECT 
+                p.postId,
+                p.createdBy,
+                p.content,
+                p.likedCnt,
+                p.createdAt,
+                p.imagePath,
+                p.isPublic
+            FROM 
+                post p
+            ORDER BY 
+                p.createdAt DESC
+        """;
+        
         try (Connection con = connect();
              Statement stmt = con.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
-
+            
             while (rs.next()) {
                 long createdBy = rs.getLong("createdBy");
                 String content = rs.getString("content");
@@ -90,8 +94,7 @@ public class DatabaseServer {
                 Timestamp createdAt = rs.getTimestamp("createdAt");
                 String imagePath = rs.getString("imagePath");
                 boolean isPublic = rs.getBoolean("isPublic");
-
-                // Post 객체 생성 (username은 포함하지 않음)
+                
                 posts.add(new Post(createdBy, content, likedCnt, createdAt, imagePath, isPublic));
             }
         } catch (SQLException e) {
@@ -178,5 +181,47 @@ public class DatabaseServer {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public String getUsernameById(long userId) {
+        String query = "SELECT username FROM user WHERE uid = ?";
+        try (Connection con = connect();
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("username");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "Unknown User";
+    }
+
+    public User getUserById(String userId) {
+        String query = "SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt " +
+                "FROM user WHERE uid = ?";
+        try (Connection con = connect(); 
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setString(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new User(
+                        rs.getLong("uid"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("bio"),
+                        rs.getString("email"),
+                        rs.getInt("followerCnt"),
+                        rs.getInt("followingCnt"),
+                        rs.getTimestamp("createdAt")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

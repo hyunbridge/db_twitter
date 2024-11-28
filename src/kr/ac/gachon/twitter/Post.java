@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import java.sql.Timestamp;
 
 public class Post {
@@ -6,7 +8,6 @@ public class Post {
     private String content;
     private int likedCnt;
     private Timestamp createdAt;
-    private String username;
     private String imagePath;
     private boolean isPublic;
 
@@ -43,10 +44,6 @@ public class Post {
 
     public Timestamp getCreatedAt() {
         return createdAt;
-    }
-
-    public String getUsername() {
-        return username;
     }
 
     public String getImagePath(){

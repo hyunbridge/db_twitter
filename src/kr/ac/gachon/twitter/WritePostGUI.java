@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -11,8 +13,10 @@ public class WritePostGUI extends JPanel{
     private JButton submitButton;
     private JButton imageButton;
     private String uploadedImagePath = null; // 업로드된 이미지 경로
+    private long userId; // 추가: 사용자 ID 저장
 
-    public WritePostGUI() {
+    public WritePostGUI(long userId) { // 생성자 수정
+        this.userId = userId; // 사용자 ID 저장
         setLayout(new BorderLayout());
 
         // Post Content Area
@@ -75,22 +79,28 @@ public class WritePostGUI extends JPanel{
     }
 
     private void submitPost() {
-        // 1. 사용자 입력값 읽기
-        String content = postContentArea.getText();// 텍스트 영역에서 입력된 내용 읽기
+        String content = postContentArea.getText();
         String selectedVisibility = (String) visibilityComboBox.getSelectedItem();
         boolean isPublic = selectedVisibility.equals("Everyone");
 
-        // 2. Post 객체 생성
-        long createdBy = 1;
-        int likedCnt = 999;
+        // userId 사용
+        long createdBy = this.userId; // 저장된 userId 사용
+        int likedCnt = 0; // 초기값은 0으로 설정
         String imagePath = uploadedImagePath;
-        // 현재 시간 생성
         java.sql.Timestamp currentTime = new java.sql.Timestamp(System.currentTimeMillis());
 
         Post post = new Post(createdBy, content, likedCnt, currentTime, imagePath, isPublic);
 
-        // 3. 서버에 Post 객체 전달
         DatabaseServer server = new DatabaseServer();
-        server.insertPost(post); // insertPost 메서드 수정 필요
+        boolean success = server.insertPost(post);
+        
+        if (success) {
+            JOptionPane.showMessageDialog(this, "Post created successfully!");
+            // 피드 화면으로 돌아가기
+            CardLayout cardLayout = (CardLayout) getParent().getLayout();
+            cardLayout.show(getParent(), "Feed");
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to create post", "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

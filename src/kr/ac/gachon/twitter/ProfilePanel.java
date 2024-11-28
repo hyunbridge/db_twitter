@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.*;

@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import java.sql.Timestamp;
 
 public class User {

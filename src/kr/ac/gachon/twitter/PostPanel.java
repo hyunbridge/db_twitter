@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +18,7 @@ public class PostPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         // 유저 이름 표시
-        JLabel usernameLabel = new JLabel(post.getUsername());
+        JLabel usernameLabel = new JLabel(getUsernameFromId(post.getCreatedBy()));
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 15));
         usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
@@ -100,5 +102,10 @@ public class PostPanel extends JPanel {
 
     public Post getPost() {
         return post;
+    }
+
+    private String getUsernameFromId(long userId) {
+        DatabaseServer db = new DatabaseServer();
+        return db.getUsernameById(userId);
     }
 }

@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
@@ -9,7 +11,9 @@ public class DetailPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // 유저 이름
-        JLabel usernameLabel = new JLabel("Posted by: " + post.getUsername());
+        DatabaseServer db = new DatabaseServer();
+        String username = db.getUsernameById(post.getCreatedBy());
+        JLabel usernameLabel = new JLabel("Posted by: " + username);
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         add(usernameLabel);
 
@@ -35,7 +39,8 @@ public class DetailPanel extends JPanel {
             commentPanel.setLayout(new BoxLayout(commentPanel, BoxLayout.Y_AXIS));
 
             // 댓글 작성자
-            JLabel commentUserLabel = new JLabel("Comment by: " + comment.getCreatedBy());
+            String commentUsername = db.getUsernameById(comment.getCreatedBy());
+            JLabel commentUserLabel = new JLabel("Comment by: " + commentUsername);
             commentUserLabel.setFont(new Font("Arial", Font.PLAIN, 12));
             commentPanel.add(commentUserLabel);
 
