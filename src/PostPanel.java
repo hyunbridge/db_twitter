@@ -17,7 +17,7 @@ public class PostPanel extends JPanel {
 
         // 유저 이름 표시
         JLabel usernameLabel = new JLabel(post.getUsername());
-        usernameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        usernameLabel.setFont(new Font("Arial", Font.BOLD, 15));
         usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // 글 내용 표시 (HTML 태그를 사용하여 줄바꿈)

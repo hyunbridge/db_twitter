@@ -6,8 +6,14 @@ import java.util.List;
 public class TwitterUI extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
+    private User loggedInUser; // 현재 로그인된 사용자 정보
 
-    public TwitterUI() {
+    public TwitterUI(User loggedInUser) {
+        this.loggedInUser = loggedInUser;
+        initialize();
+    }
+
+    private void initialize(){
         setTitle("Twitter Feed");
         setSize(400, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,9 +71,48 @@ public class TwitterUI extends JFrame {
         });
 
         bottomPanel.add(homeButton);
-        bottomPanel.add(writePostButton); // 새로운 버튼 추가
+        bottomPanel.add(writePostButton);
         bottomPanel.add(searchButton);
 
+        // 상단 패널 구성
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout());
+        topPanel.setBackground(Color.lightGray); // 배경색 설정
+        topPanel.setPreferredSize(new Dimension(getWidth(), 50)); // 상단 바의 높이를 설정
+
+        // 프로필 이미지를 원본 그대로 사용
+        String profileImagePath = loggedInUser.getProfileImage();
+        if (profileImagePath == null) {
+            profileImagePath = "images/profile_default1.jpg";  // 기본 이미지
+        }
+
+        // 이미지 크기 조정 (예: 50x50 크기로 줄임)
+        ImageIcon profileImageIcon = new ImageIcon(profileImagePath);
+        Image image = profileImageIcon.getImage(); // 원본 이미지를 가져옴
+        Image scaledImage = image.getScaledInstance(30 , 30, Image.SCALE_SMOOTH); // 이미지 크기 조정
+        profileImageIcon = new ImageIcon(scaledImage);
+
+        // 프로필 이미지 버튼 만들기
+        JButton profileImageButton = new JButton();
+        profileImageButton.setIcon(profileImageIcon);  // 버튼에 이미지 설정
+        profileImageButton.setContentAreaFilled(false);  // 버튼 배경 제거
+        profileImageButton.setBorderPainted(false);  // 버튼 테두리 제거
+
+        // 버튼 클릭 시 프로필 화면으로 전환
+        profileImageButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 프로필 버튼 클릭 시 ProfilePanel로 전환
+                ProfilePanel profilePanel = new ProfilePanel(loggedInUser);
+                mainPanel.add(profilePanel, "Profile");
+                cardLayout.show(mainPanel, "Profile");
+            }
+        });
+        // 상단 패널에 프로필 이미지 버튼을 추가
+        topPanel.add(profileImageButton, BorderLayout.WEST);
+
+        // 상단 패널을 상단에 배치
+        add(topPanel, BorderLayout.NORTH);
         // 하단 버튼 패널을 하단에 배치
         add(bottomPanel, BorderLayout.SOUTH);
         add(mainPanel, BorderLayout.CENTER);

@@ -10,55 +10,27 @@ public class LoginFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // 메인 패널
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        // 메인 패널 (CardLayout을 사용할 패널)
+        JPanel cardPanel = new JPanel();
+        CardLayout cardLayout = new CardLayout();
+        cardPanel.setLayout(cardLayout);
 
-        // 사용자 입력 필드
-        JLabel userLabel = new JLabel("Username:");
-        JTextField userField = new JTextField(20);
+        // 로그인 화면 패널
+        JPanel loginPanel = new LoginPanel(cardLayout, cardPanel);
 
-        JLabel passLabel = new JLabel("Password:");
-        JPasswordField passField = new JPasswordField(20);
+        // 회원가입 화면 패널
+        JPanel signupPanel = new SignupPanel(cardLayout, cardPanel);
 
-        JButton loginButton = new JButton("Login");
+        // CardLayout에 패널 추가
+        cardPanel.add(loginPanel, "Login");
+        cardPanel.add(signupPanel, "Signup");
 
-        // 컴포넌트 배치
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        mainPanel.add(userLabel, gbc);
+        // CardLayout의 기본 화면을 로그인 화면으로 설정
+        cardLayout.show(cardPanel, "Login");
 
-        gbc.gridx = 1;
-        mainPanel.add(userField, gbc);
+        // 메인 프레임에 cardPanel 추가
+        add(cardPanel);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        mainPanel.add(passLabel, gbc);
-
-        gbc.gridx = 1;
-        mainPanel.add(passField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        mainPanel.add(loginButton, gbc);
-
-        add(mainPanel);
-
-        // 로그인 버튼 액션
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 로그인 성공 후 TwitterUI 창 띄우기
-                TwitterUI twitterUI = new TwitterUI();
-                twitterUI.setVisible(true);
-                // 현재 로그인 창 닫기
-                dispose();
-            }
-        });
     }
 
     public static void main(String[] args) {

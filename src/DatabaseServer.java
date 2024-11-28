@@ -38,6 +38,31 @@ public class DatabaseServer {
         return users;
     }
 
+    // 이거 username이랑 password 만 비교하기
+    public User authenticateUser(String username, String password) {
+        String query = "SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt " +
+                "FROM user WHERE username = ? AND password = ?";
+        try (Connection con = connect(); PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    long uid = rs.getLong("uid");
+                    String bio = rs.getString("bio");
+                    String email = rs.getString("email");
+                    int followerCnt = rs.getInt("followerCnt");
+                    int followingCnt = rs.getInt("followingCnt");
+                    Timestamp createdAt = rs.getTimestamp("createdAt");
+
+                    return new User(uid, username, password, bio, email, followerCnt, followingCnt, createdAt);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // 로그인 실패 시
+    }
+
     // 게시물 정보 가져오기 (Post 테이블에서)
     public List<Post> getPosts() {
         List<Post> posts = new ArrayList<>();
@@ -74,7 +99,6 @@ public class DatabaseServer {
         }
         return posts;
     }
-
 
     // 댓글 정보 가져오기 (Comment 테이블에서)
     public List<Comment> getComments() {
@@ -121,5 +145,38 @@ public class DatabaseServer {
             e.printStackTrace();
         }
         return false; // 실패 시 false 반환
+    }
+
+    public boolean checkUserEmail(String email) {
+        // 이메일 중복을 확인하는 쿼리
+        String query = "SELECT COUNT(*) FROM user WHERE email = ?";
+        try (Connection con = connect(); PreparedStatement stmt = con.prepareStatement(query)) {
+            // 이메일 파라미터 설정
+            stmt.setString(1, email);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int count = rs.getInt(1);  // 결과에서 count 값을 얻어옵니다
+                    return count > 0;  // 이메일이 존재하면 true 반환
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;  // 이메일이 존재하지 않으면 false 반환
+    }
+
+    public boolean addNewUser(User user) {
+        String query = "INSERT INTO user (username, password, email, createdAt) VALUES (?, ?, ?, ?)";
+        try (Connection con = connect(); PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setString(1, user.getUsername());
+            stmt.setString(2, user.getPassword());
+            stmt.setString(3, user.getEmail());
+            stmt.setTimestamp(4, user.getCreatedAt());  // 현재 시간을 createdAt으로 설정
+            int rowsInserted = stmt.executeUpdate();
+            return rowsInserted > 0;  // 성공적으로 추가되면 true 반환
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
