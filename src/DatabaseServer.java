@@ -1,10 +1,12 @@
+// import Chatting.Chat;
+
 import java.sql.*;
 import java.util.*;
 
 public class DatabaseServer {
 
     // 데이터베이스 연결 정보
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/twitterapp"; // 실제 DB URL로 변경
+    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/twitterapp"; // 실제 DB URL로 변경
     private static final String USER = "root"; // 본인 DB 사용자명
     private static final String PASSWORD = "pw";// 본인 DB 비밀번호
 
@@ -120,4 +122,57 @@ public class DatabaseServer {
         }
         return false; // 실패 시 false 반환
     }
+
+//    // 채팅 데이터 가져오기 (Chat 테이블에서)
+//    public List<Chat> getChats(long userId) {
+//        List<Chat> chats = new ArrayList<>();
+//        String query = """
+//        SELECT
+//            chat.chatId,
+//            chat.senderId,
+//            sender.username AS senderName,
+//            chat.receiverId,
+//            receiver.username AS receiverName,
+//            chat.message,
+//            chat.createdAt,
+//            chat.isRead
+//        FROM
+//            chat
+//        JOIN
+//            user AS sender
+//        ON
+//            chat.senderId = sender.uid
+//        JOIN
+//            user AS receiver
+//        ON
+//            chat.receiverId = receiver.uid
+//        WHERE
+//            chat.senderId = ? OR chat.receiverId = ?
+//        ORDER BY
+//            chat.createdAt DESC
+//    """;
+//
+//        try (Connection con = connect(); PreparedStatement pstmt = con.prepareStatement(query)) {
+//            pstmt.setLong(1, userId);
+//            pstmt.setLong(2, userId);
+//
+//            try (ResultSet rs = pstmt.executeQuery()) {
+//                while (rs.next()) {
+//                    long chatId = rs.getLong("chatId");
+//                    long senderId = rs.getLong("senderId");
+//                    String senderName = rs.getString("senderName");
+//                    long receiverId = rs.getLong("receiverId");
+//                    String receiverName = rs.getString("receiverName");
+//                    String message = rs.getString("message");
+//                    Timestamp createdAt = rs.getTimestamp("createdAt");
+//                    boolean isRead = rs.getBoolean("isRead");
+//
+//                    chats.add(new Chat(chatId, senderId, senderName, receiverId, receiverName, message, createdAt, isRead));
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return chats;
+//    }
 }
