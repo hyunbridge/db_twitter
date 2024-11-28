@@ -6,7 +6,7 @@ import java.util.*;
 public class DatabaseServer {
 
     // 데이터베이스 연결 정보
-    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/twitterapp"; // 실제 DB URL로 변경
+    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/twitterapp"; // 실제 DB URL로 변경..
     private static final String USER = "root"; // 본인 DB 사용자명
     private static final String PASSWORD = "pw";// 본인 DB 비밀번호
 

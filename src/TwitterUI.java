@@ -115,7 +115,7 @@ public class TwitterUI extends JFrame {
     }
 
 //    private JPanel createChatPanel() {
-//        // 데이터베이스에서 채팅 리스트 가져오기
+//        // 데이터베이스에서 채팅 리스트 가져오기..
 //        DatabaseServer server = new DatabaseServer();
 //        List<Chat> chats = server.getChats(userId);
 //

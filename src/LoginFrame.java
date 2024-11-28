@@ -48,7 +48,7 @@ public class LoginFrame extends JFrame {
 
         add(mainPanel);
 
-        // 로그인 버튼 액션
+        // 로그인 버튼 액션..
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

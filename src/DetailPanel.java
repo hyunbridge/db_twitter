@@ -8,7 +8,7 @@ public class DetailPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // 유저 이름
+        // 유저 이름..
         JLabel usernameLabel = new JLabel("Posted by: " + post.getUsername());
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         add(usernameLabel);

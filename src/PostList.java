@@ -45,7 +45,7 @@ public class PostList extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    // 개별 글을 나타내는 패널 생성
+    // 개별 글을 나타내는 패널 생성..
     private JPanel createPostPanel(Post post) {
         JPanel postPanel = new JPanel();
         postPanel.setLayout(new BoxLayout(postPanel, BoxLayout.Y_AXIS));
