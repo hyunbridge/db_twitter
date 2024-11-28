@@ -83,7 +83,7 @@ public class TwitterUI extends JFrame {
         // 프로필 이미지를 원본 그대로 사용
         String profileImagePath = loggedInUser.getProfileImage();
         if (profileImagePath == null) {
-            profileImagePath = "images/profile_default1.jpg";  // 기본 이미지
+            profileImagePath = "images/profile_default.jpg";  // 기본 이미지
         }
 
         // 이미지 크기 조정 (예: 50x50 크기로 줄임)
