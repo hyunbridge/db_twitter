@@ -3,14 +3,18 @@ package kr.ac.gachon.twitter;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 public class PostPanel extends JPanel {
     private Post post;
-    public PostPanel(Post post) {
+    private User loggedInUser;
+    public PostPanel(Post post, User loggedInUser) {
         this.post = post;
+        this.loggedInUser = loggedInUser;
         initialize();
     }
     private void initialize() {
@@ -28,21 +32,30 @@ public class PostPanel extends JPanel {
         String formattedContent = formatContent(content, maxLineLength);
         JLabel contentLabel = new JLabel("<html><div style='width:400px;'>" + formattedContent + "</div></html>");
         contentLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
         // 패널에 구성 요소 추가
         add(usernameLabel);
         add(contentLabel);
 
         // 글과 이미지 사이 간격 추가
-        add(Box.createRigidArea(new Dimension(0, 10))); // 글과 이미지 사이 간격 추가
+        add(Box.createRigidArea(new Dimension(0, 10)));
+        
         // 이미지가 존재하면 표시
         if (post.getImagePath() != null) {
             JLabel imageLabel = createImageLabel(post.getImagePath());
             imageLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            add(Box.createRigidArea(new Dimension(0, 10))); // 글과 이미지 사이 간격
-            add(imageLabel); // 이미지 추가
+            add(Box.createRigidArea(new Dimension(0, 10)));
+            add(imageLabel);
         }
+        
+        // 좋아요 수 표시
+        JLabel likeCountLabel = new JLabel("❤️ " + post.getLikedCnt());
+        likeCountLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        add(Box.createRigidArea(new Dimension(0, 5)));
+        add(likeCountLabel);
+        
         // UI 간격 추가
-        add(Box.createRigidArea(new Dimension(0, 10))); // 이미지와 다른 UI 요소 사이 간격 추가
+        add(Box.createRigidArea(new Dimension(0, 10)));
     }
 
     /**
@@ -107,5 +120,87 @@ public class PostPanel extends JPanel {
     private String getUsernameFromId(long userId) {
         DatabaseServer db = new DatabaseServer();
         return db.getUsernameById(userId);
+    }
+
+    private void addPostOptions() {
+        if (post.getCreatedBy() == loggedInUser.getUid()) {
+            JPopupMenu menu = new JPopupMenu();
+            JMenuItem editItem = new JMenuItem("Edit");
+            JMenuItem deleteItem = new JMenuItem("Delete");
+            
+            editItem.addActionListener(e -> editPost());
+            deleteItem.addActionListener(e -> deletePost());
+            
+            menu.add(editItem);
+            menu.add(deleteItem);
+            
+            addMouseListener(new MouseAdapter() {
+                public void mouseReleased(MouseEvent e) {
+                    if (e.isPopupTrigger()) {
+                        menu.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
+            });
+        }
+    }
+
+    private void editPost() {
+        String newContent = JOptionPane.showInputDialog(
+            this,
+            "Edit post:",
+            post.getContent()
+        );
+        
+        if (newContent != null && !newContent.trim().isEmpty()) {
+            DatabaseServer db = new DatabaseServer();
+            boolean success = db.updatePost(post.getPostId(), newContent);
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Post updated successfully!");
+                // UI 업데이트
+                refreshPost();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update post", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void deletePost() {
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this post?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION
+        );
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            DatabaseServer db = new DatabaseServer();
+            boolean success = db.deletePost(post.getPostId());
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Post deleted successfully!");
+                // 부모 컨테이너 새로고침
+                Container parent = getParent();
+                if (parent instanceof JPanel) {
+                    ((JPanel) parent).remove(this);
+                    parent.revalidate();
+                    parent.repaint();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to delete post", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void refreshPost() {
+        DatabaseServer db = new DatabaseServer();
+        Post updatedPost = db.getPostById(post.getPostId());
+        if (updatedPost != null) {
+            this.post = updatedPost;
+            removeAll();
+            initialize();
+            revalidate();
+            repaint();
+        }
     }
 }

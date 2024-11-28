@@ -8,10 +8,15 @@ import java.util.List;
 public class TwitterUI extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainPanel;
-    private User loggedInUser; // 현재 로그인된 사용자 정보
+    private JPanel feedPanel;
+    private JComboBox<String> filterComboBox;
+    private String currentFilter = "All";
 
-    public TwitterUI(User loggedInUser) {
-        this.loggedInUser = loggedInUser;
+    public TwitterUI() {
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            throw new IllegalStateException("No user logged in");
+        }
         initialize();
     }
 
@@ -62,13 +67,10 @@ public class TwitterUI extends JFrame {
         writePostButton.setBackground(Color.LIGHT_GRAY); // 배경 색상 설정
         writePostButton.setIcon(new ImageIcon("images/plus1.png")); // 이미지 넣기
         writePostButton.setFocusPainted(false); // 포커스 효과 제거
-        writePostButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                WritePostGUI writePostPanel = new WritePostGUI(loggedInUser.getUid());
-                mainPanel.add(writePostPanel, "WritePost");
-                cardLayout.show(mainPanel, "WritePost");
-            }
+        writePostButton.addActionListener(e -> {
+            WritePostGUI writePostPanel = new WritePostGUI();
+            mainPanel.add(writePostPanel, "WritePost");
+            cardLayout.show(mainPanel, "WritePost");
         });
 
         bottomPanel.add(homeButton);
@@ -78,11 +80,12 @@ public class TwitterUI extends JFrame {
         // 상단 패널 구성
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
-        topPanel.setBackground(Color.lightGray); // 배경색 설정
-        topPanel.setPreferredSize(new Dimension(getWidth(), 50)); // 상단 바의 높이를 설정
+        topPanel.setBackground(Color.lightGray);
+        topPanel.setPreferredSize(new Dimension(getWidth(), 50));
 
-        // 프로필 이미지를 원본 그대로 사용
-        String profileImagePath = loggedInUser.getProfileImage();
+        // 프로필 이미지 관련 부분 수정
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        String profileImagePath = currentUser.getProfileImage();
         if (profileImagePath == null) {
             profileImagePath = "images/profile_default.jpg";  // 기본 이미지
         }
@@ -100,17 +103,27 @@ public class TwitterUI extends JFrame {
         profileImageButton.setBorderPainted(false);  // 버튼 테두리 제거
 
         // 버튼 클릭 시 프로필 화면으로 전환
-        profileImageButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // 프로필 버튼 클릭 시 ProfilePanel로 전환
-                ProfilePanel profilePanel = new ProfilePanel(loggedInUser);
-                mainPanel.add(profilePanel, "Profile");
-                cardLayout.show(mainPanel, "Profile");
-            }
+        profileImageButton.addActionListener(e -> {
+            ProfilePanel profilePanel = new ProfilePanel(currentUser);
+            mainPanel.add(profilePanel, "Profile");
+            cardLayout.show(mainPanel, "Profile");
         });
-        // 상단 패널에 프로필 이미지 버튼을 추가
+
+        // 쪽지함 버튼 (오른쪽)
+        JButton messageButton = new JButton("✉️");
+        DatabaseServer db = new DatabaseServer();
+        int unreadCount = db.getUnreadMessageCount(currentUser.getUid());
+        if (unreadCount > 0) {
+            messageButton.setText("✉️ (" + unreadCount + ")");
+        }
+        messageButton.addActionListener(e -> {
+            MessagePanel messagePanel = new MessagePanel();
+            mainPanel.add(messagePanel, "Messages");
+            cardLayout.show(mainPanel, "Messages");
+        });
+
         topPanel.add(profileImageButton, BorderLayout.WEST);
+        topPanel.add(messageButton, BorderLayout.EAST);
 
         // 상단 패널을 상단에 배치
         add(topPanel, BorderLayout.NORTH);
@@ -121,65 +134,92 @@ public class TwitterUI extends JFrame {
 
     // 피드 화면 생성
     private JPanel createFeedPanel() {
-        // 데이터베이스에서 게시물 가져오기
-        DatabaseServer server = new DatabaseServer();
-        List<Post> posts = server.getPosts();
+        // 피드 컨테이너 패널
+        JPanel containerPanel = new JPanel(new BorderLayout());
+        
+        // 필터 패널 (상단)
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        String[] filterOptions = {"All posts", "Following user's posts", "Hot posts", "Scraped posts"};
+        filterComboBox = new JComboBox<>(filterOptions);
+        
+        JButton refreshButton = new JButton("🔄");
+        refreshButton.setToolTipText("Refresh");
+        
+        // 필터나 새로고침 버튼 클릭 시 피드 갱신
+        ActionListener refreshAction = e -> {
+            currentFilter = switch((String)filterComboBox.getSelectedItem()) {
+                case "Following user's posts" -> "Following";
+                case "Hot posts" -> "Hot";
+                case "Scraped posts" -> "Scraped";
+                default -> "All";
+            };
+            refreshFeed(currentFilter);
+        };
+        
+        filterComboBox.addActionListener(refreshAction);
+        refreshButton.addActionListener(refreshAction);
+        
+        filterPanel.add(filterComboBox);
+        filterPanel.add(refreshButton);
+        
+        // 피드 패널
+        feedPanel = new JPanel();
+        feedPanel.setLayout(new BoxLayout(feedPanel, BoxLayout.Y_AXIS));
+        feedPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // 초기 피드 로드
+        refreshFeed("All");
+
+        // 스크롤 패널 설정
+        JScrollPane scrollPane = new JScrollPane(feedPanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        // 스크롤 속도 조정
+        JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
+        verticalScrollBar.setUnitIncrement(20);
+        verticalScrollBar.setBlockIncrement(50);
+
+        // 컨테이너에 필터 패널과 스크롤 패널 추가
+        containerPanel.add(filterPanel, BorderLayout.NORTH);
+        containerPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        return containerPanel;
+    }
+
+    // 피드 갱신 메서드 수정
+    public void refreshFeed() {
+        refreshFeed(currentFilter);
+    }
+
+    public void refreshFeed(String filter) {
+        feedPanel.removeAll();
+
+        DatabaseServer server = new DatabaseServer();
+        User currentUser = SessionManager.getInstance().getCurrentUser();
+        List<Post> posts = server.getPosts(filter, currentUser.getUid());
 
         for (Post post : posts) {
-            JPanel postPanel = new PostPanel(post);
+            JPanel postPanel = new PostPanel(post, currentUser);
             postPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             postPanel.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    showDetailPanel(((PostPanel) postPanel).getPost()); // PostPanel에서 Post 객체 가져오기
+                    showDetailPanel(((PostPanel) postPanel).getPost());
                 }
             });
-            // Action Bar (하트, 스크랩, 댓글 버튼) 생성
-            JPanel actionBar = createActionBar(post);
-            // Post 패널과 Action Bar를 포함한 컨테이너 패널 생성
-            JPanel postContainer = new JPanel();
-            postContainer.setLayout(new BorderLayout());
-            postContainer.add(postPanel, BorderLayout.CENTER);
-            postContainer.add(actionBar, BorderLayout.SOUTH);
-            // 컨테이너 패널 추가
-            panel.add(postContainer);
+
+            feedPanel.add(postPanel);
 
             // 구분선 추가
             JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-            separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1)); // 전체 너비로 설정
-            panel.add(separator);
-
-            panel.add(Box.createRigidArea(new Dimension(0, 10))); // 간격 추가
+            separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+            feedPanel.add(separator);
+            feedPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         }
 
-        JScrollPane scrollPane = new JScrollPane(panel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // 수평 스크롤 비활성화
-
-        // 스크롤 영역의 너비 동적 조정
-        panel.setPreferredSize(new Dimension(scrollPane.getWidth(), panel.getPreferredSize().height));
-        scrollPane.addComponentListener(new ComponentAdapter() {
-            @Override
-            public void componentResized(ComponentEvent e) {
-                // 패널 너비를 스크롤패널 크기에 맞춤
-                panel.setPreferredSize(new Dimension(scrollPane.getViewport().getWidth(), panel.getPreferredSize().height));
-                panel.revalidate();
-            }
-        });
-
-        // 스크롤 속도 조정
-        JScrollBar verticalScrollBar = scrollPane.getVerticalScrollBar();
-        verticalScrollBar.setUnitIncrement(20); // 단위 증가 (1회 스크롤바 이동)
-        verticalScrollBar.setBlockIncrement(50); // 블록 증가 (Page Up/Down 동작)
-        add(scrollPane, BorderLayout.CENTER);
-
-        JPanel feedPanel = new JPanel(new BorderLayout());
-        feedPanel.add(scrollPane, BorderLayout.CENTER);
-        return feedPanel;
+        feedPanel.revalidate();
+        feedPanel.repaint();
     }
 
     // Action Bar 생성 메서드
@@ -221,14 +261,15 @@ public class TwitterUI extends JFrame {
     }
 
     private void showDetailPanel(Post post) {
-        // 댓글 가져오기
         DatabaseServer server = new DatabaseServer();
-        List<Comment> comments = server.getComments();  // 해당 글의 댓글들 가져오기
-
-        // DetailPanel 생성
-        DetailPanel detailPanel = new DetailPanel(post, comments);
-
-        // 상세 화면 추가
+        List<Comment> comments = server.getCommentsByPostId(post.getPostId());
+        DetailPanel detailPanel = new DetailPanel(post, comments) {
+            @Override
+            public void removeNotify() {
+                super.removeNotify();
+                refreshFeed();
+            }
+        };
         mainPanel.add(detailPanel, "Detail");
         cardLayout.show(mainPanel, "Detail");
     }

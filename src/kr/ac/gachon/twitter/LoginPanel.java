@@ -63,10 +63,12 @@ public class LoginPanel extends JPanel {
                 User loggedInUser = db.authenticateUser(username, password);
 
                 if (loggedInUser != null) {
+                    // 세션에 현재 사용자 설정
+                    SessionManager.getInstance().setCurrentUser(loggedInUser);
                     JOptionPane.showMessageDialog(null, "Login Successful!");
 
                     // 로그인 후 TwitterUI 창 열기
-                    TwitterUI twitterUI = new TwitterUI(loggedInUser);
+                    TwitterUI twitterUI = new TwitterUI();
                     twitterUI.setVisible(true);
                     // 로그인 창을 닫음
                     ((JFrame) SwingUtilities.getWindowAncestor(LoginPanel.this)).dispose();

@@ -11,8 +11,9 @@ public class Post {
     private String imagePath;
     private boolean isPublic;
 
-    public Post(long createdBy, String content, int likedCnt, Timestamp createdAt,
+    public Post(long postId, long createdBy, String content, int likedCnt, Timestamp createdAt,
                 String imagePath, boolean isPublic) {
+        this.postId = postId;
         this.createdBy = createdBy;
         this.content = content;
         this.likedCnt = likedCnt;

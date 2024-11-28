@@ -13,10 +13,17 @@ public class WritePostGUI extends JPanel{
     private JButton submitButton;
     private JButton imageButton;
     private String uploadedImagePath = null; // 업로드된 이미지 경로
-    private long userId; // 추가: 사용자 ID 저장
+    private User currentUser;
 
-    public WritePostGUI(long userId) { // 생성자 수정
-        this.userId = userId; // 사용자 ID 저장
+    public WritePostGUI() {
+        this.currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            throw new IllegalStateException("No user logged in");
+        }
+        initialize();
+    }
+
+    private void initialize() {
         setLayout(new BorderLayout());
 
         // Post Content Area
@@ -83,20 +90,26 @@ public class WritePostGUI extends JPanel{
         String selectedVisibility = (String) visibilityComboBox.getSelectedItem();
         boolean isPublic = selectedVisibility.equals("Everyone");
 
-        // userId 사용
-        long createdBy = this.userId; // 저장된 userId 사용
-        int likedCnt = 0; // 초기값은 0으로 설정
+        long createdBy = currentUser.getUid();
+        int likedCnt = 0;
         String imagePath = uploadedImagePath;
         java.sql.Timestamp currentTime = new java.sql.Timestamp(System.currentTimeMillis());
 
-        Post post = new Post(createdBy, content, likedCnt, currentTime, imagePath, isPublic);
+        Post post = new Post(0, createdBy, content, likedCnt, currentTime, imagePath, isPublic);
 
         DatabaseServer server = new DatabaseServer();
         boolean success = server.insertPost(post);
         
         if (success) {
             JOptionPane.showMessageDialog(this, "Post created successfully!");
-            // 피드 화면으로 돌아가기
+            // 부모 TwitterUI 찾아서 피드 갱신
+            Container parent = getParent();
+            while (parent != null && !(parent instanceof TwitterUI)) {
+                parent = parent.getParent();
+            }
+            if (parent instanceof TwitterUI) {
+                ((TwitterUI) parent).refreshFeed();
+            }
             CardLayout cardLayout = (CardLayout) getParent().getLayout();
             cardLayout.show(getParent(), "Feed");
         } else {

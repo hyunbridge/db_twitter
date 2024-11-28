@@ -12,7 +12,7 @@ public class PostService {
     // PostService.java
     public void openWritePostGUI(User user) {
         SwingUtilities.invokeLater(() -> {
-            new WritePostGUI(user.getUid());
+            new WritePostGUI();
         });
     }
 

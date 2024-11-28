@@ -104,12 +104,12 @@ public class SignupPanel extends JPanel {
                 boolean success = db.addNewUser(newUser);
 
                 if (success) {
+                    User registeredUser = db.getUserByUsername(name); // 변수명 변경
+                    SessionManager.getInstance().setCurrentUser(registeredUser);
                     JOptionPane.showMessageDialog(null, "User created successfully!");
-                    // TwitterUI 열기
-                    TwitterUI twitterUI = new TwitterUI(newUser);
+                    
+                    TwitterUI twitterUI = new TwitterUI();
                     twitterUI.setVisible(true);
-
-                    // 현재 창 닫기
                     ((JFrame) SwingUtilities.getWindowAncestor(SignupPanel.this)).dispose();
                 } else {
                     JOptionPane.showMessageDialog(null, "Error occurred while creating the user.", "Error", JOptionPane.ERROR_MESSAGE);
