@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import java.sql.Timestamp;
 
 public class Post {
@@ -6,27 +8,22 @@ public class Post {
     private String content;
     private int likedCnt;
     private Timestamp createdAt;
-    private String username;
     private String imagePath;
     private boolean isPublic;
 
-
-    public Post(long postId, long createdBy, String content, int likedCnt, Timestamp createdAt, String username) {
-        this.postId = postId;
-        this.createdBy = createdBy;
-        this.content = content;
-        this.likedCnt = likedCnt;
-        this.createdAt = createdAt;
-        this.username = username;
-    }
-    public Post(long createdBy, String content, int likedCnt, Timestamp createdAt,
+    public Post(long postId, long createdBy, String content, int likedCnt, Timestamp createdAt,
                 String imagePath, boolean isPublic) {
+        this.postId = postId;
         this.createdBy = createdBy;
         this.content = content;
         this.likedCnt = likedCnt;
         this.createdAt = createdAt;
         this.imagePath = imagePath;
         this.isPublic = isPublic;
+    }
+
+    public void plusLikedCnt(){
+        this.likedCnt++;
     }
 
     // Getters and Setters
@@ -50,17 +47,10 @@ public class Post {
         return createdAt;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
     public String getImagePath(){
         return imagePath;
     }
     public boolean getIsPublic(){
         return isPublic;
-    }
-    public void setUsername(String username) {
-        this.username = username;
     }
 }

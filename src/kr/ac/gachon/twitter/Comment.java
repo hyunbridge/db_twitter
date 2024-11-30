@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import java.sql.Timestamp;
 
 public class Comment {
@@ -46,5 +48,15 @@ public class Comment {
 
     public Timestamp getCreatedAt() {
         return createdAt;
+    }
+
+    public void addReply(Comment reply) {
+        if (reply.getParent() == this.getCommentId()) {
+            // 대댓글 추가 로직
+        }
+    }
+
+    public void setLikedCnt(int likedCnt) {
+        this.likedCnt = likedCnt;
     }
 }

@@ -1,3 +1,5 @@
+package kr.ac.gachon.twitter;
+
 import java.sql.Timestamp;
 
 public class User {
@@ -9,6 +11,8 @@ public class User {
     private int followerCnt;
     private int followingCnt;
     private Timestamp createdAt;
+    private String backgroundImage;
+    private String profileImage;
 
     public User(long uid, String username, String password, String bio, String email, int followerCnt, int followingCnt, Timestamp createdAt) {
         this.uid = uid;
@@ -18,6 +22,13 @@ public class User {
         this.email = email;
         this.followerCnt = followerCnt;
         this.followingCnt = followingCnt;
+        this.createdAt = createdAt;
+    }
+
+    public User(String username, String password, String email, Timestamp createdAt){
+        this.username = username;
+        this.password = password;
+        this.email = email;
         this.createdAt = createdAt;
     }
 
@@ -52,5 +63,9 @@ public class User {
 
     public Timestamp getCreatedAt() {
         return createdAt;
+    }
+
+    public String getProfileImage() {
+        return profileImage; // `profileImage`가 null일 수 있으므로 체크 필요
     }
 }
