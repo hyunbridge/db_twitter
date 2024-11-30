@@ -130,10 +130,36 @@ public class ChatDetail extends JPanel {
                     String filePath = selectedFile.getAbsolutePath();
                     String fileName = selectedFile.getName();
 
-                    // 메시지 전송 및 업데이트 UI
+                    // 서버에 메시지 전송
                     boolean success = new DatabaseServer().sendMessageWithFile(currentUser.getUid(), partner.getUid(), fileName, filePath);
                     if (success) {
-                        sendMessage(filePath, filePath);
+                        // 성공 시 UI에만 메시지 추가
+                        ChatMessage newMessage = new ChatMessage(
+                                -1,
+                                currentUser.getUid(),
+                                currentUser.getUsername(),
+                                partner.getUid(),
+                                fileName,
+                                new java.sql.Timestamp(System.currentTimeMillis()),
+                                false,
+                                filePath // 전달받은 filePath 그대로 사용
+                        );
+
+                        messagesPanel.add(createMessageBubble(newMessage));
+                        messagesPanel.add(Box.createVerticalStrut(10));
+                        messagesPanel.revalidate();
+                        messagesPanel.repaint();
+
+                        // 자동 스크롤
+                        SwingUtilities.invokeLater(() -> {
+                            JScrollPane parentScrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, messagesPanel);
+                            if (parentScrollPane != null) {
+                                JScrollBar verticalBar = parentScrollPane.getVerticalScrollBar();
+                                verticalBar.setValue(verticalBar.getMaximum());
+                            }
+                        });
+
+                        // 입력창 초기화
                         messageField.setText("");
                     } else {
                         JOptionPane.showMessageDialog(this, "Failed to send the file.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -141,6 +167,7 @@ public class ChatDetail extends JPanel {
                 }
             }
         });
+
 
         sendButton.addActionListener(e -> {
             String content = messageField.getText();
@@ -184,13 +211,31 @@ public class ChatDetail extends JPanel {
 
         boolean isSentByMe = message.getSenderId() == currentUser.getUid();
 
+        // 메시지 내용 또는 이미지 표시
+        JLabel contentLabel = null;
+        if (message.getFilePath() != null && !message.getFilePath().isEmpty()) {
+            // 이미지가 있는 경우
+            contentLabel = createImageLabel(message.getFilePath());
+            if (contentLabel != null) {
+                contentLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+            }
+        } else {
+            // 텍스트 메시지인 경우
+            contentLabel = new JLabel(message.getMessage());
+            contentLabel.setOpaque(true);
+            contentLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+            contentLabel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+            contentLabel.setBackground(isSentByMe ? Color.CYAN : Color.LIGHT_GRAY);
+            contentLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+        }
+
         // 메시지 라벨
-        JLabel messageLabel = new JLabel(message.getMessage());
-        messageLabel.setOpaque(true);
-        messageLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
-        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        messageLabel.setBackground(isSentByMe ? Color.CYAN : Color.LIGHT_GRAY);
-        messageLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+        // JLabel messageLabel = new JLabel(message.getMessage());
+        // messageLabel.setOpaque(true);
+       //  messageLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
+        // messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+        // messageLabel.setBackground(isSentByMe ? Color.CYAN : Color.LIGHT_GRAY);
+
 
         // 타임스탬프 라벨
         SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm a", Locale.US);
@@ -201,30 +246,22 @@ public class ChatDetail extends JPanel {
         timestampLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
 
         // 이미지가 포함된 경우
-        JLabel imageLabel = null;
-        if (message.getFilePath() != null && !message.getFilePath().isEmpty()) {
-            imageLabel = createImageLabel(message.getFilePath());
-            if (imageLabel != null) {
-                imageLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
-            }
-        }
+//        JLabel imageLabel = null;
+//        if (message.getFilePath() != null && !message.getFilePath().isEmpty()) {
+//            imageLabel = createImageLabel(message.getFilePath());
+//            if (imageLabel != null) {
+//                imageLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+//            }
+//        }
 
-        // 메시지와 타임스탬프 순서 정렬
+        // 메시지와 타임스탬프 및 이미지를 정렬하여 추가
         if (isSentByMe) {
             bubblePanel.add(Box.createVerticalStrut(5));
-            bubblePanel.add(messageLabel);
+            bubblePanel.add(contentLabel);
             bubblePanel.add(timestampLabel);
-            if (imageLabel != null) {
-                bubblePanel.add(Box.createVerticalStrut(5));
-                bubblePanel.add(imageLabel);
-            }
         } else {
-            bubblePanel.add(messageLabel);
+            bubblePanel.add(contentLabel);
             bubblePanel.add(timestampLabel);
-            if (imageLabel != null) {
-                bubblePanel.add(Box.createVerticalStrut(5));
-                bubblePanel.add(imageLabel);
-            }
         }
 
         return bubblePanel;
@@ -342,17 +379,6 @@ public class ChatDetail extends JPanel {
         if (filePath == null) {
             filePath = "";
         }
-        // 새 메시지를 생성
-        ChatMessage newMessage = new ChatMessage(
-                -1,
-                currentUser.getUid(),
-                currentUser.getUsername(),
-                partner.getUid(),
-                content,
-                new java.sql.Timestamp(System.currentTimeMillis()),
-                false,
-                filePath
-        );
 
         // 서버로 메시지 전송
         boolean success = new DatabaseServer().sendMessageWithFile(
@@ -364,7 +390,18 @@ public class ChatDetail extends JPanel {
 
         if (success) {
             // 서버 전송 성공 시 리스트에 추가하고 UI 갱신
+            ChatMessage newMessage = new ChatMessage(
+                    -1,
+                    currentUser.getUid(),
+                    currentUser.getUsername(),
+                    partner.getUid(),
+                    content,
+                    new java.sql.Timestamp(System.currentTimeMillis()),
+                    false,
+                    filePath
+            );
             chats.add(newMessage);
+
             messagesPanel.add(createMessageBubble(newMessage));
             messagesPanel.add(Box.createVerticalStrut(10));
             messagesPanel.revalidate();

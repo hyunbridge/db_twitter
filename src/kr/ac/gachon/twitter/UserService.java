@@ -1,11 +1,11 @@
-package org.example;
+package kr.ac.gachon.twitter;
 
 import java.sql.*;
 import java.util.Scanner;
 
 public class UserService {
     private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:mysql://localhost:3306/twitter", "root", "pw");
+        return DriverManager.getConnection("jdbc:mysql://localhost:3306/twitter", "root", "qw");
     }
 
     public void displayAllUsers() {

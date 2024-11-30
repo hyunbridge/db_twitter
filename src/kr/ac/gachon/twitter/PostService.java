@@ -1,4 +1,4 @@
-package org.example;
+package kr.ac.gachon.twitter;
 
 import javax.swing.*;
 import java.sql.*;
@@ -9,47 +9,12 @@ public class PostService {
         return DriverManager.getConnection("jdbc:mysql://localhost:3306/twitter", "root", "pw");
     }
 
-    /* public void writePost(Scanner scanner, String userId) {
-        try (Connection con = getConnection()) {
-            System.out.println("Enter your post content:");
-            scanner.nextLine();
-            String text = scanner.nextLine();
-
-            System.out.println("Do you want to make this post public? (y/n):");
-            String publicInput = scanner.nextLine();
-            boolean isPublic = publicInput.equalsIgnoreCase("y");
-
-            String idQuery = "SELECT COUNT(*) FROM posts";
-            Statement idStmt = con.createStatement();
-            ResultSet rs = idStmt.executeQuery(idQuery);
-            String postId = "p1";
-            if (rs.next()) {
-                postId = "p" + (rs.getInt(1) + 1);
-            }
-
-            java.sql.Timestamp currentTime = new java.sql.Timestamp(System.currentTimeMillis());
-
-            String sql = "INSERT INTO posts (post_id, content, writer_id, num_of_likes, createAtTime, modeifiedAtTime, isPublic) VALUES (?, ?, ?, 0, ?, ?, ?)";
-            PreparedStatement pstmt = con.prepareStatement(sql);
-            pstmt.setString(1, postId);
-            pstmt.setString(2, text);
-            pstmt.setString(3, userId);
-            pstmt.setTimestamp(4, currentTime);
-            pstmt.setTimestamp(5, currentTime);
-            pstmt.setBoolean(6, isPublic);
-            pstmt.executeUpdate();
-
-            System.out.println("Post created successfully!");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    } */
-
     // PostService.java
-    public void openWritePostGUI(String userId) {
-        SwingUtilities.invokeLater(() -> new WritePostGUI(userId));
+    public void openWritePostGUI(User user) {
+        SwingUtilities.invokeLater(() -> {
+            new WritePostGUI();
+        });
     }
-
 
     public void likePost(Scanner scanner, String userId) {
         Connection con = null;

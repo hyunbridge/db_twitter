@@ -9,7 +9,7 @@ public class DatabaseServer {
     private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/twitterapp?useUnicode=true&characterEncoding=UTF-8";
 
     private static final String USER = "root"; // 본인 DB 사용자명
-    private static final String PASSWORD = "pw";// 본인 DB 비밀번호
+    private static final String PASSWORD = "mshywjmjkv1024@";// 본인 DB 비밀번호
 
 
     // 데이터베이스 연결 메서드
