@@ -41,7 +41,7 @@ public class ChatDetail extends JPanel {
         // 상대방 프로필 이미지 경로 가져오기
         String profileImagePath = partner.getProfileImage();
         if (profileImagePath == null || profileImagePath.isEmpty()) {
-            profileImagePath = "images/profile_default.png";
+            profileImagePath = "images/profile_default.jpg";
         }
 
         // 프로필 이미지 설정
