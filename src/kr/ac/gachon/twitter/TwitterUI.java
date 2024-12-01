@@ -40,26 +40,10 @@ public class TwitterUI extends JFrame {
         bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
         // Home 버튼
-        JButton homeButton = new JButton("Home");
-        homeButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Home 버튼 클릭 시 메인 화면으로 돌아가기
-                cardLayout.show(mainPanel, "Feed");
-            }
-        });
+        JButton homeButton = mainHomeButton("C:/Users/gram/Downloads/Home.png");
 
         // Search 버튼
-        JButton searchButton = new JButton("Search");
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Search 버튼 클릭 시 SearchPanel 화면으로 전환
-                SearchPanel searchPanel = new SearchPanel();
-                mainPanel.add(searchPanel, "Search");
-                cardLayout.show(mainPanel, "Search");
-            }
-        });
+        JButton searchButton = mainSearchButton("C:/Users/gram/Downloads/Search.png");
 
         // Write Post 버튼 (네모 버튼)
         JButton writePostButton = new JButton();
@@ -110,17 +94,12 @@ public class TwitterUI extends JFrame {
         });
 
         // 쪽지함 버튼 (오른쪽)
-        JButton messageButton = new JButton("✉️");
+        JButton messageButton = mailBox("C:/Users/gram/Downloads/Mail.png");
         DatabaseServer db = new DatabaseServer();
         int unreadCount = db.getUnreadMessageCount(currentUser.getUid());
-        if (unreadCount > 0) {
+        /* if (unreadCount > 0) {
             messageButton.setText("✉️ (" + unreadCount + ")");
-        }
-        messageButton.addActionListener(e -> {
-            MessagePanel messagePanel = new MessagePanel();
-            mainPanel.add(messagePanel, "Messages");
-            cardLayout.show(mainPanel, "Messages");
-        });
+        } */
 
         topPanel.add(profileImageButton, BorderLayout.WEST);
         topPanel.add(messageButton, BorderLayout.EAST);
@@ -276,6 +255,100 @@ public class TwitterUI extends JFrame {
         mainPanel.add(detailPanel, "Detail");
         cardLayout.show(mainPanel, "Detail");
     }
+
+    private JButton mainHomeButton(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);
+
+            // 클릭 이벤트 추가
+            imageButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Home 버튼 클릭 시 메인 화면으로 돌아가기
+                    cardLayout.show(mainPanel, "Feed");
+                }
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
+    private JButton mainSearchButton(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);
+
+            imageButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Search 버튼 클릭 시 SearchPanel 화면으로 전환
+                    SearchPanel searchPanel = new SearchPanel();
+                    mainPanel.add(searchPanel, "Search");
+                    cardLayout.show(mainPanel, "Search");
+                }
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
+    private JButton mailBox(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+
+            // 클릭 이벤트 추가
+            imageButton.addActionListener(e -> {
+                MessagePanel messagePanel = new MessagePanel();
+                mainPanel.add(messagePanel, "Messages");
+                cardLayout.show(mainPanel, "Messages");
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
+
 
     /*public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

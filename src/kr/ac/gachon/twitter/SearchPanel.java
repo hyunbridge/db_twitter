@@ -78,12 +78,8 @@ public class SearchPanel extends JPanel {
         // 뒤로가기 버튼
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> {
-            if (getParent().getLayout() instanceof CardLayout) {
-                ((CardLayout) getParent().getLayout()).show(getParent(), "Feed");
-            }
-        });
+        JButton backButton = backStep("C:/Users/gram/Downloads/Arrow left.png");
+
         bottomPanel.add(backButton);
         add(bottomPanel, BorderLayout.SOUTH);
     }
@@ -195,4 +191,34 @@ public class SearchPanel extends JPanel {
             ((CardLayout) parent.getLayout()).show(parent, "Detail");
         }
     }
+
+    private JButton backStep(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+
+            // 클릭 이벤트 추가
+            imageButton.addActionListener(e -> {
+                if (getParent().getLayout() instanceof CardLayout) {
+                    ((CardLayout) getParent().getLayout()).show(getParent(), "Feed");
+                }
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
 }

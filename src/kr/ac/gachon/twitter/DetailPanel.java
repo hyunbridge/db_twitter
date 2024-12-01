@@ -46,7 +46,40 @@ public class DetailPanel extends JPanel {
         commentInputPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField commentField = new JTextField();
-        JButton submitButton = new JButton("Comment");
+        JButton submitButton = subMitComment("C:/Users/gram/Downloads/Send.png", 30, 30);
+
+        submitButton.addActionListener(e -> {
+            String content = commentField.getText();
+            if (!content.isEmpty()) {
+                DatabaseServer db = new DatabaseServer();
+                Comment newComment = new Comment(
+                        0,
+                        post.getPostId(),
+                        0,
+                        currentUser.getUid(),
+                        content,
+                        0,
+                        new Timestamp(System.currentTimeMillis()));
+
+                if (db.addComment(newComment)) {
+                    commentField.setText("");
+                    refreshComments();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Failed to add comment",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // 버튼과 텍스트 필드 배치
+        commentInputPanel.add(commentField, BorderLayout.CENTER);
+        commentInputPanel.add(submitButton, BorderLayout.EAST);
+
+        mainContentPanel.add(commentInputPanel);
+
+        /*
 
         // 버튼 너비를 80으로 하고, 입력 필드는 스크롤바 너비까지 고려해서 조정
         submitButton.setPreferredSize(new Dimension(80, 30));
@@ -80,7 +113,7 @@ public class DetailPanel extends JPanel {
         commentInputPanel.add(commentField, BorderLayout.CENTER);
         commentInputPanel.add(submitButton, BorderLayout.EAST);
 
-        mainContentPanel.add(commentInputPanel);
+        mainContentPanel.add(commentInputPanel); */
 
         // 댓글 목록 패널
         messagesPanel = new JPanel();
@@ -99,18 +132,8 @@ public class DetailPanel extends JPanel {
         // 하단 버튼 패널
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        JButton backButton = new JButton("Back");
-        backButton.addActionListener(e -> {
-            Container parent = getParent();
-            while (parent != null && !(parent instanceof TwitterUI)) {
-                parent = parent.getParent();
-            }
-            if (parent instanceof TwitterUI) {
-                ((TwitterUI) parent).refreshFeed();
-            }
-            CardLayout cardLayout = (CardLayout) getParent().getLayout();
-            cardLayout.show(getParent(), "Feed");
-        });
+        JButton backButton = BackPage("C:/Users/gram/Downloads/Arrow left.png");
+
         bottomPanel.add(backButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
@@ -448,4 +471,62 @@ public class DetailPanel extends JPanel {
 
         return headerPanel;
     }
+
+    private JButton BackPage(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+
+            // 클릭 이벤트 추가
+            imageButton.addActionListener(e -> {
+                Container parent = getParent();
+                while (parent != null && !(parent instanceof TwitterUI)) {
+                    parent = parent.getParent();
+                }
+                if (parent instanceof TwitterUI) {
+                    ((TwitterUI) parent).refreshFeed();
+                }
+                CardLayout cardLayout = (CardLayout) getParent().getLayout();
+                cardLayout.show(getParent(), "Feed");
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
+    private JButton subMitComment(String filePath, int width, int height) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setContentAreaFilled(false); // 배경 제거
+            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 버튼 생성
+            JButton placeholderButton = new JButton("Send");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
 }

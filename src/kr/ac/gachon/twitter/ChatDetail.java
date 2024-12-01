@@ -83,19 +83,14 @@ public class ChatDetail extends JPanel {
         headerPanel.add(partnerNameLabel);
 
         // Delete Button
-        JButton deleteButton = new JButton("Delete");
-        deleteButton.setBackground(Color.RED);
-        deleteButton.setForeground(Color.WHITE);
-        deleteButton.setFocusPainted(false);
+        JButton deleteButton = deleteChatButton("C:/Users/gram/Downloads/delete.png");
 
         // *** MODIFIED: Delete button alignment ***
         deleteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        deleteButton.setPreferredSize(new Dimension(80, 30));
 
-        deleteButton.addActionListener(e -> {
-            deleteChat();
-            cardLayout.show(mainPanel, "ChatList");
-        });
+        // Add deleteButton to header panel
+        headerPanel.add(Box.createVerticalStrut(10));
+        headerPanel.add(deleteButton);
 
 
         // *** MODIFIED: Added delete button to header panel ***
@@ -243,16 +238,6 @@ public class ChatDetail extends JPanel {
         JLabel timestampLabel = new JLabel(formattedTime);
         timestampLabel.setFont(new Font("맑은 고딕", Font.ITALIC, 10));
         timestampLabel.setForeground(Color.GRAY);
-//        timestampLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
-
-        // 이미지가 포함된 경우
-//        JLabel imageLabel = null;
-//        if (message.getFilePath() != null && !message.getFilePath().isEmpty()) {
-//            imageLabel = createImageLabel(message.getFilePath());
-//            if (imageLabel != null) {
-//                imageLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
-//            }
-//        }
 
         // 내부 정렬을 위한 래퍼 패널 생성
         JPanel wrapperPanel = new JPanel();
@@ -284,6 +269,34 @@ public class ChatDetail extends JPanel {
         return bubblePanel;
     }
 
+
+    private JButton deleteChatButton(String filePath) {
+        try {
+            // Load and resize the image
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+
+            // Create the button
+            JButton imageButton = new JButton(icon);
+
+            // Remove button styles to make it look like an image
+            imageButton.setBorderPainted(false);
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);
+
+            // Add action listener to delete the chat and navigate
+            imageButton.addActionListener(e -> {
+                deleteChat(); // Perform deletion
+                cardLayout.show(mainPanel, "ChatList");
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // Fallback button in case of image loading failure
+            JButton placeholderButton = new JButton("Delete");
+            placeholderButton.setEnabled(false); // Disable the button
+            return placeholderButton;
+        }
+    }
 
 
     private JLabel createImageLabel(String filePath) {
@@ -322,27 +335,17 @@ public class ChatDetail extends JPanel {
             return;
         }
 
-        // Save 버튼 생성
-        JButton saveButton = new JButton("Save");
-        saveButton.addActionListener(e -> saveImage(filePath));
-        saveButton.setFocusPainted(false);
-        saveButton.setBackground(Color.GREEN);
-        saveButton.setForeground(Color.WHITE);
-        saveButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        // Save 버튼 대신 이미지 버튼 생성
+        JButton saveImageButton = createImageButton("C:/Users/gram/Downloads/Download@2x.png");
 
         // 닫기 버튼 생성
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(e -> fullScreenDialog.dispose());
-        closeButton.setFocusPainted(false);
-        closeButton.setBackground(Color.RED);
-        closeButton.setForeground(Color.WHITE);
-        closeButton.setFont(new Font("맑은 고딕", Font.BOLD, 14));
+        // JButton closeButton = backButton("C:/Users/gram/Downloads/X.png");
 
         // 버튼 패널 생성
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.add(saveButton);
-        buttonPanel.add(closeButton);
+        buttonPanel.add(saveImageButton);
+        // buttonPanel.add(closeButton);
 
         fullScreenDialog.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -352,6 +355,62 @@ public class ChatDetail extends JPanel {
         fullScreenDialog.setLocationRelativeTo(null);
         fullScreenDialog.setVisible(true);
     }
+
+    private JButton createImageButton(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setContentAreaFilled(false); // 배경 제거
+            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+
+            // 클릭 이벤트 추가
+            imageButton.addActionListener(e -> {
+                saveImage(filePath); // 저장 동작 수행
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false); // 클릭 불가능
+            return placeholderButton;
+        }
+    }
+
+    // 기능은 저장 기능임
+    /* private JButton backButton(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);
+
+            // 클릭 이벤트 추가
+            imageButton.addActionListener(e -> {
+                saveImage(filePath);
+            });
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false);
+            return placeholderButton;
+        }
+    } */
+
 
     private void saveImage(String filePath) {
         JFileChooser fileChooser = new JFileChooser();

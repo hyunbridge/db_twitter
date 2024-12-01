@@ -33,8 +33,8 @@ public class MessagePanel extends JPanel {
 
         // 하단에 새 메시지 버튼 추가
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton newMessageButton = new JButton("New Message");
-        newMessageButton.addActionListener(e -> showNewMessageDialog());
+        JButton newMessageButton = newMessage("C:/Users/gram/Downloads/newMessage.png");
+
         bottomPanel.add(newMessageButton);
         add(bottomPanel, BorderLayout.SOUTH);
 
@@ -90,6 +90,30 @@ public class MessagePanel extends JPanel {
 
         chatListPanel.revalidate();
         chatListPanel.repaint();
+    }
+
+    private JButton newMessage(String filePath) {
+        try {
+            // 이미지 로드 및 크기 조정
+            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+
+            // 버튼 생성
+            JButton imageButton = new JButton(icon);
+
+            // 버튼 스타일 제거 (이미지처럼 보이게 설정)
+            imageButton.setBorderPainted(false);
+            imageButton.setContentAreaFilled(false);
+            imageButton.setFocusPainted(false);
+
+            imageButton.addActionListener(e -> showNewMessageDialog());
+
+            return imageButton;
+        } catch (Exception e) {
+            // 이미지가 없는 경우 대체 텍스트 버튼 생성
+            JButton placeholderButton = new JButton("Image not found");
+            placeholderButton.setEnabled(false);
+            return placeholderButton;
+        }
     }
 
     private void showChatDetail(User partner) {
