@@ -1183,4 +1183,85 @@ public class DatabaseServer {
         }
     }
 
+    public List<User> searchUsers(String keyword) {
+        List<User> users = new ArrayList<>();
+        String query = """
+            SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt 
+            FROM user 
+            WHERE username LIKE ? OR bio LIKE ?
+            """;
+            
+        try (Connection con = connect();
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            String searchPattern = "%" + keyword + "%";
+            stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    users.add(new User(
+                        rs.getLong("uid"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("bio"),
+                        rs.getString("email"),
+                        rs.getInt("followerCnt"),
+                        rs.getInt("followingCnt"),
+                        rs.getTimestamp("createdAt")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public List<Post> searchPosts(String keyword, long currentUserId) {
+        List<Post> posts = new ArrayList<>();
+        String query = """
+            SELECT p.* 
+            FROM post p
+            WHERE (p.content LIKE ? OR EXISTS (
+                SELECT 1 FROM user u 
+                WHERE u.uid = p.createdBy 
+                AND u.username LIKE ?
+            ))
+            AND (p.isPublic = true 
+                OR p.createdBy = ? 
+                OR EXISTS (
+                    SELECT 1 FROM follow f 
+                    WHERE f.subject = ? 
+                    AND f.createdBy = p.createdBy
+                ))
+            ORDER BY p.createdAt DESC
+            """;
+            
+        try (Connection con = connect();
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            String searchPattern = "%" + keyword + "%";
+            stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
+            stmt.setLong(3, currentUserId);
+            stmt.setLong(4, currentUserId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    posts.add(new Post(
+                        rs.getLong("postId"),
+                        rs.getLong("createdBy"),
+                        rs.getString("content"),
+                        rs.getInt("likedCnt"),
+                        rs.getTimestamp("createdAt"),
+                        rs.getString("imagePath"),
+                        rs.getBoolean("isPublic")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return posts;
+    }
+
 }
