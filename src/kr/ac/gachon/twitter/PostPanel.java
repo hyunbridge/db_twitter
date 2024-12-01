@@ -19,27 +19,23 @@ public class PostPanel extends JPanel {
     }
     private void initialize() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // 유저 이름 표시
         JLabel usernameLabel = new JLabel(getUsernameFromId(post.getCreatedBy()));
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 15));
         usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // 글 내용 표시 (HTML 태그를 사용하여 줄바꿈)
-        String content = post.getContent();
-        int maxLineLength = 50; // 한 줄에 최대 표시할 글자 수
-        String formattedContent = formatContent(content, maxLineLength);
-        JLabel contentLabel = new JLabel("<html><div style='width:400px;'>" + formattedContent + "</div></html>");
+        // 글 내용 표시
+        JLabel contentLabel = new JLabel();
+        contentLabel.setText(post.getContent());
+        contentLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         contentLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        
-        // 패널에 구성 요소 추가
+
         add(usernameLabel);
         add(contentLabel);
 
-        // 글과 이미지 사이 간격 추가
-        add(Box.createRigidArea(new Dimension(0, 10)));
-        
         // 이미지가 존재하면 표시
         if (post.getImagePath() != null) {
             JLabel imageLabel = createImageLabel(post.getImagePath());
@@ -47,14 +43,13 @@ public class PostPanel extends JPanel {
             add(Box.createRigidArea(new Dimension(0, 10)));
             add(imageLabel);
         }
-        
+
         // 좋아요 수 표시
         JLabel likeCountLabel = new JLabel("❤️ " + post.getLikedCnt());
         likeCountLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         add(Box.createRigidArea(new Dimension(0, 5)));
         add(likeCountLabel);
-        
-        // UI 간격 추가
+
         add(Box.createRigidArea(new Dimension(0, 10)));
     }
 
