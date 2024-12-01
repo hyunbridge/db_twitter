@@ -122,7 +122,7 @@ public class ProfilePanel extends JPanel {
                     JOptionPane.showMessageDialog(dialog, "Message sent successfully!");
                     dialog.dispose();
                 } else {
-                    JOptionPane.showMessageDialog(dialog, "Failed to send message", 
+                    JOptionPane.showMessageDialog(dialog, "Failed to send message",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }

@@ -132,6 +132,9 @@ public class TwitterUI extends JFrame {
         add(mainPanel, BorderLayout.CENTER);
     }
 
+
+
+
     // 피드 화면 생성
     private JPanel createFeedPanel() {
         // 피드 컨테이너 패널

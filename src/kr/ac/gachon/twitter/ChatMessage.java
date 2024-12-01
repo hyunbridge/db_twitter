@@ -10,9 +10,9 @@ public class ChatMessage {
     private String message;
     private Timestamp createdAt;
     private boolean isRead;
+    private String filePath;
 
-    public ChatMessage(long chatId, long senderId, String senderName, long receiverId, 
-                      String message, Timestamp createdAt, boolean isRead) {
+    public ChatMessage(long chatId, long senderId, String senderName, long receiverId, String message, Timestamp createdAt, boolean isRead, String filePath) {
         this.chatId = chatId;
         this.senderId = senderId;
         this.senderName = senderName;
@@ -20,7 +20,9 @@ public class ChatMessage {
         this.message = message;
         this.createdAt = createdAt;
         this.isRead = isRead;
+        this.filePath = filePath;
     }
+
 
     // Getters
     public long getChatId() { return chatId; }
@@ -30,4 +32,12 @@ public class ChatMessage {
     public String getMessage() { return message; }
     public Timestamp getCreatedAt() { return createdAt; }
     public boolean isRead() { return isRead; }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
 } 

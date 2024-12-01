@@ -6,9 +6,10 @@ import java.util.*;
 public class DatabaseServer {
 
     // 데이터베이스 연결 정보
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/dbTermProj"; // 실제 DB URL로 변경
+    private static final String DB_URL = "jdbc:mysql://127.0.0.1:3306/twitterapp?useUnicode=true&characterEncoding=UTF-8";
+
     private static final String USER = "root"; // 본인 DB 사용자명
-    private static final String PASSWORD = "qwerty";// 본인 DB 비밀번호
+    private static final String PASSWORD = "mshywjmjkv1024@";// 본인 DB 비밀번호
 
 
     // 데이터베이스 연결 메서드
@@ -895,6 +896,38 @@ public class DatabaseServer {
         }
     }
 
+    public boolean addChatPartner(long senderId, long receiverId) {
+        String checkExistingChatQuery = """
+        SELECT COUNT(*) 
+        FROM chat 
+        WHERE (senderId = ? AND receiverId = ?) 
+        OR (senderId = ? AND receiverId = ?)
+    """;
+
+        try (Connection con = connect()) {
+            // 기존 대화 여부 확인
+            try (PreparedStatement checkStmt = con.prepareStatement(checkExistingChatQuery)) {
+                checkStmt.setLong(1, senderId);
+                checkStmt.setLong(2, receiverId);
+                checkStmt.setLong(3, receiverId);
+                checkStmt.setLong(4, senderId);
+
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        // 기존 대화가 존재하면 추가 작업 없이 true 반환
+                        return true;
+                    }
+                }
+            }
+
+            // 새로운 대화만 생성 (초기 메시지 추가 없음)
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // 받은 쪽지 목록 가져오기
     public List<ChatMessage> getReceivedMessages(long userId) {
         List<ChatMessage> messages = new ArrayList<>();
@@ -905,7 +938,7 @@ public class DatabaseServer {
             WHERE c.receiverId = ? 
             ORDER BY c.createdAt DESC
             """;
-        
+
         try (Connection con = connect();
              PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
@@ -918,7 +951,8 @@ public class DatabaseServer {
                         rs.getLong("receiverId"),
                         rs.getString("message"),
                         rs.getTimestamp("createdAt"),
-                        rs.getBoolean("isRead")
+                        rs.getBoolean("isRead"),
+                            rs.getString("filePath")
                     ));
                 }
             }
@@ -938,7 +972,7 @@ public class DatabaseServer {
             WHERE c.senderId = ? 
             ORDER BY c.createdAt DESC
             """;
-        
+
         try (Connection con = connect();
              PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
@@ -951,7 +985,8 @@ public class DatabaseServer {
                         rs.getLong("receiverId"),
                         rs.getString("message"),
                         rs.getTimestamp("createdAt"),
-                        rs.getBoolean("isRead")
+                        rs.getBoolean("isRead"),
+                            rs.getString("filePath")
                     ));
                 }
             }
@@ -1067,7 +1102,8 @@ public class DatabaseServer {
                         rs.getLong("receiverId"),
                         rs.getString("message"),
                         rs.getTimestamp("createdAt"),
-                        rs.getBoolean("isRead")
+                        rs.getBoolean("isRead"),
+                            rs.getString("filePath")
                     ));
                 }
             }
@@ -1094,4 +1130,61 @@ public class DatabaseServer {
         }
         return 0;
     }
+
+    public boolean deleteChatsWithPartner(long userId, long partnerId) {
+        try (Connection con = connect()) {
+            con.setAutoCommit(false); // Begin transaction
+            try {
+                // 1. Delete the chat messages directly
+                String deleteChatsQuery = """
+                DELETE FROM chat 
+                WHERE (senderId = ? AND receiverId = ?)
+                   OR (senderId = ? AND receiverId = ?);
+            """;
+                try (PreparedStatement stmt = con.prepareStatement(deleteChatsQuery)) {
+                    stmt.setLong(1, userId);
+                    stmt.setLong(2, partnerId);
+                    stmt.setLong(3, partnerId);
+                    stmt.setLong(4, userId);
+                    int result = stmt.executeUpdate();
+
+                    if (result > 0) {
+                        con.commit(); // Commit the transaction
+                        return true; // Chats successfully deleted
+                    }
+                }
+
+                con.rollback(); // Rollback the transaction if no rows were affected
+                return false;
+            } catch (SQLException e) {
+                con.rollback(); // Rollback the transaction in case of an error
+                e.printStackTrace();
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean sendMessageWithFile(long senderId, long receiverId, String content, String filePath) {
+        String query = "INSERT INTO chat (senderId, receiverId, message, filePath, createdAt, isRead) VALUES (?, ?, ?, ?, ?, false)";
+        try (Connection con = connect();
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setLong(1, senderId);
+            stmt.setLong(2, receiverId);
+            stmt.setString(3, content);
+            stmt.setString(4, filePath);
+            stmt.setTimestamp(5, new Timestamp(System.currentTimeMillis()));
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+
+
+
 }
