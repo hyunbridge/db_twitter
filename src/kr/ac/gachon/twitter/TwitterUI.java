@@ -40,10 +40,10 @@ public class TwitterUI extends JFrame {
         bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
         // Home 버튼
-        JButton homeButton = mainHomeButton("C:/Users/gram/Downloads/Home.png");
+        JButton homeButton = mainHomeButton("images/Home.png");
 
         // Search 버튼
-        JButton searchButton = mainSearchButton("C:/Users/gram/Downloads/Search.png");
+        JButton searchButton = mainSearchButton("images/Search.png");
 
         // Write Post 버튼 (네모 버튼)
         JButton writePostButton = new JButton();
@@ -94,7 +94,7 @@ public class TwitterUI extends JFrame {
         });
 
         // 쪽지함 버튼 (오른쪽)
-        JButton messageButton = mailBox("C:/Users/gram/Downloads/Mail.png");
+        JButton messageButton = mailBox("images/Mail.png");
         DatabaseServer db = new DatabaseServer();
         int unreadCount = db.getUnreadMessageCount(currentUser.getUid());
         /* if (unreadCount > 0) {

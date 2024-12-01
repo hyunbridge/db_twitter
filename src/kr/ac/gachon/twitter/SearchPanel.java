@@ -78,7 +78,7 @@ public class SearchPanel extends JPanel {
         // 뒤로가기 버튼
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        JButton backButton = backStep("C:/Users/gram/Downloads/Arrow left.png");
+        JButton backButton = backStep("images/Arrow left.png");
 
         bottomPanel.add(backButton);
         add(bottomPanel, BorderLayout.SOUTH);

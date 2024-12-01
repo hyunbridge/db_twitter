@@ -33,7 +33,7 @@ public class MessagePanel extends JPanel {
 
         // 하단에 새 메시지 버튼 추가
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton newMessageButton = newMessage("C:/Users/gram/Downloads/newMessage.png");
+        JButton newMessageButton = newMessage("images/newMessage.png");
 
         bottomPanel.add(newMessageButton);
         add(bottomPanel, BorderLayout.SOUTH);
