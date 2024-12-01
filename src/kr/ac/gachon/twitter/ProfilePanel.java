@@ -8,6 +8,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
 
 public class ProfilePanel extends JPanel {
     private User profileUser; // 프로필의 주인
@@ -179,25 +182,76 @@ public class ProfilePanel extends JPanel {
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
         infoPanel.setBackground(Color.WHITE);
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
 
         JLabel usernameLabel = new JLabel(profileUser.getUsername());
         usernameLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        usernameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
         JLabel bioLabel = new JLabel(profileUser.getBio() != null ? 
             profileUser.getBio() : "No bio available");
         bioLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        bioLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         
-        JLabel followersLabel = new JLabel(
-            String.format("Followers: %d | Following: %d", 
-            profileUser.getFollowerCnt(), 
-            profileUser.getFollowingCnt())
-        );
-        
+        // 팔로워/팔로잉 패널
+        JPanel followPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        followPanel.setBackground(Color.WHITE);
+        followPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // 팔로워 라벨
+        JLabel followersLabel = new JLabel(String.format("<html><u>Followers: %d</u></html>", profileUser.getFollowerCnt()));
+        followersLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        followersLabel.setForeground(Color.BLACK);
+        followersLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showFollowList(true);
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                followersLabel.setForeground(new Color(100, 100, 100));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                followersLabel.setForeground(Color.BLACK);
+            }
+        });
+
+        // 구분자
+        JLabel separator = new JLabel(" | ");
+
+        // 팔로잉 라벨
+        JLabel followingLabel = new JLabel(String.format("<html><u>Following: %d</u></html>", profileUser.getFollowingCnt()));
+        followingLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        followingLabel.setForeground(Color.BLACK);
+        followingLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showFollowList(false);
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                followingLabel.setForeground(new Color(100, 100, 100));
+            }
+            
+            @Override
+            public void mouseExited(MouseEvent e) {
+                followingLabel.setForeground(Color.BLACK);
+            }
+        });
+
+        followPanel.add(followersLabel);
+        followPanel.add(separator);
+        followPanel.add(followingLabel);
+
         infoPanel.add(usernameLabel);
         infoPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         infoPanel.add(bioLabel);
         infoPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        infoPanel.add(followersLabel);
+        infoPanel.add(followPanel);
 
         panel.add(infoPanel, BorderLayout.CENTER);
         return panel;
@@ -213,5 +267,78 @@ public class ProfilePanel extends JPanel {
             revalidate();
             repaint();
         }
+    }
+
+    private void showFollowList(boolean isFollowers) {
+        DatabaseServer db = new DatabaseServer();
+        List<User> users = isFollowers ? 
+            db.getFollowers(profileUser.getUid()) : 
+            db.getFollowing(profileUser.getUid());
+        
+        String title = isFollowers ? "Followers" : "Following";
+        JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), title, true);
+        dialog.setLayout(new BorderLayout());
+        
+        // 유저 목록 패널
+        JPanel usersPanel = new JPanel();
+        usersPanel.setLayout(new BoxLayout(usersPanel, BoxLayout.Y_AXIS));
+        usersPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        
+        for (User user : users) {
+            JPanel userPanel = new JPanel();
+            userPanel.setLayout(new BoxLayout(userPanel, BoxLayout.Y_AXIS));
+            userPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+            userPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            // 유저 이름을 클릭 가능한 링크처럼 만들기
+            JLabel nameLabel = new JLabel("<html><u>" + user.getUsername() + "</u></html>");
+            nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            nameLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            nameLabel.setForeground(Color.BLACK);
+            nameLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            
+            // 클릭 이벤트 추가
+            nameLabel.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent evt) {
+                    dialog.dispose();
+                    ProfilePanel profilePanel = new ProfilePanel(user);
+                    JPanel mainPanel = (JPanel) getParent();
+                    mainPanel.add(profilePanel, "Profile");
+                    CardLayout cardLayout = (CardLayout) mainPanel.getLayout();
+                    cardLayout.show(mainPanel, "Profile");
+                }
+                
+                public void mouseEntered(MouseEvent evt) {
+                    nameLabel.setForeground(new Color(100, 100, 100));
+                }
+                
+                public void mouseExited(MouseEvent evt) {
+                    nameLabel.setForeground(Color.BLACK);
+                }
+            });
+            
+            userPanel.add(nameLabel);
+            
+            // bio 표시
+            if (user.getBio() != null && !user.getBio().isEmpty()) {
+                JLabel bioLabel = new JLabel(user.getBio());
+                bioLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+                bioLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                userPanel.add(bioLabel);
+            }
+            
+            usersPanel.add(userPanel);
+            usersPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(usersPanel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.setSize(300, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 }

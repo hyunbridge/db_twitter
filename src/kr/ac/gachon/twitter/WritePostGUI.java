@@ -98,7 +98,7 @@ public class WritePostGUI extends JPanel{
         Post post = new Post(0, createdBy, content, likedCnt, currentTime, imagePath, isPublic);
 
         DatabaseServer server = new DatabaseServer();
-        boolean success = server.insertPost(post);
+        boolean success = server.addPost(post);
         
         if (success) {
             JOptionPane.showMessageDialog(this, "Post created successfully!");
