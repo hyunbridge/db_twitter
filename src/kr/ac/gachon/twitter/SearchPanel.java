@@ -84,59 +84,93 @@ public class SearchPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    private void performSearch(String keyword) {
+    public void performSearch(String keyword) {
         resultsPanel.removeAll();
+        
+        if (keyword.startsWith("#")) {
+            // 해시태그 검색
+            String hashtag = keyword.substring(1);
+            List<Post> posts = db.searchPostsByHashtag(hashtag, currentUser.getUid());
+            
+            if (!posts.isEmpty()) {
+                JLabel postsHeader = new JLabel("Posts with #" + hashtag);
+                postsHeader.setFont(new Font("Arial", Font.BOLD, 16));
+                postsHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+                resultsPanel.add(postsHeader);
+                resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // 사용자 검색 결과
-        List<User> users = db.searchUsers(keyword);
-        if (!users.isEmpty()) {
-            JLabel usersHeader = new JLabel("Users");
-            usersHeader.setFont(new Font("Arial", Font.BOLD, 16));
-            usersHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-            resultsPanel.add(usersHeader);
-            resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-
-            for (User user : users) {
-                JPanel userPanel = createUserPanel(user);
-                resultsPanel.add(userPanel);
-                resultsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+                for (Post post : posts) {
+                    PostPanel postPanel = new PostPanel(post, currentUser);
+                    postPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    postPanel.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            showDetailPanel(post);
+                        }
+                    });
+                    resultsPanel.add(postPanel);
+                    resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                }
+            } else {
+                JLabel noResultsLabel = new JLabel("No posts found with hashtag #" + hashtag);
+                noResultsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+                noResultsLabel.setForeground(Color.GRAY);
+                noResultsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                resultsPanel.add(noResultsLabel);
             }
-        }
-
-        // 게시물 검색 결과
-        List<Post> posts = db.searchPosts(keyword, currentUser.getUid());
-        if (!posts.isEmpty()) {
+        } else {
+            // 일반 검색 로직
+            // 사용자 검색 결과
+            List<User> users = db.searchUsers(keyword);
             if (!users.isEmpty()) {
-                resultsPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+                JLabel usersHeader = new JLabel("Users");
+                usersHeader.setFont(new Font("Arial", Font.BOLD, 16));
+                usersHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+                resultsPanel.add(usersHeader);
                 resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+
+                for (User user : users) {
+                    JPanel userPanel = createUserPanel(user);
+                    resultsPanel.add(userPanel);
+                    resultsPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+                }
             }
 
-            JLabel postsHeader = new JLabel("Posts");
-            postsHeader.setFont(new Font("Arial", Font.BOLD, 16));
-            postsHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
-            resultsPanel.add(postsHeader);
-            resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+            // 게시물 검색 결과
+            List<Post> posts = db.searchPosts(keyword, currentUser.getUid());
+            if (!posts.isEmpty()) {
+                if (!users.isEmpty()) {
+                    resultsPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
+                    resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                }
 
-            for (Post post : posts) {
-                PostPanel postPanel = new PostPanel(post, currentUser);
-                postPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-                postPanel.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        showDetailPanel(post);
-                    }
-                });
-                resultsPanel.add(postPanel);
+                JLabel postsHeader = new JLabel("Posts");
+                postsHeader.setFont(new Font("Arial", Font.BOLD, 16));
+                postsHeader.setAlignmentX(Component.LEFT_ALIGNMENT);
+                resultsPanel.add(postsHeader);
                 resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-            }
-        }
 
-        if (users.isEmpty() && posts.isEmpty()) {
-            JLabel noResultsLabel = new JLabel("No results found for \"" + keyword + "\"");
-            noResultsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-            noResultsLabel.setForeground(Color.GRAY);
-            noResultsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-            resultsPanel.add(noResultsLabel);
+                for (Post post : posts) {
+                    PostPanel postPanel = new PostPanel(post, currentUser);
+                    postPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                    postPanel.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            showDetailPanel(post);
+                        }
+                    });
+                    resultsPanel.add(postPanel);
+                    resultsPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+                }
+            }
+
+            if (users.isEmpty() && posts.isEmpty()) {
+                JLabel noResultsLabel = new JLabel("No results found for \"" + keyword + "\"");
+                noResultsLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+                noResultsLabel.setForeground(Color.GRAY);
+                noResultsLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+                resultsPanel.add(noResultsLabel);
+            }
         }
 
         resultsPanel.revalidate();

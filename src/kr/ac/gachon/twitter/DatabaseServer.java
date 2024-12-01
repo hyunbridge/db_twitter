@@ -22,7 +22,9 @@ public class DatabaseServer {
         List<User> users = new ArrayList<>();
         String query = "SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt FROM user";
 
-        try (Connection con = connect(); Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
+        try (Connection con = connect();
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 long uid = rs.getLong("uid");
                 String username = rs.getString("username");
@@ -70,24 +72,24 @@ public class DatabaseServer {
     public List<Post> getPosts() {
         List<Post> posts = new ArrayList<>();
         String query = """
-            SELECT 
-                p.postId,
-                p.createdBy,
-                p.content,
-                p.likedCnt,
-                p.createdAt,
-                p.imagePath,
-                p.isPublic
-            FROM 
-                post p
-            ORDER BY 
-                p.createdAt DESC
-        """;
-        
+                    SELECT
+                        p.postId,
+                        p.createdBy,
+                        p.content,
+                        p.likedCnt,
+                        p.createdAt,
+                        p.imagePath,
+                        p.isPublic
+                    FROM
+                        post p
+                    ORDER BY
+                        p.createdAt DESC
+                """;
+
         try (Connection con = connect();
-             Statement stmt = con.createStatement();
-             ResultSet rs = stmt.executeQuery(query)) {
-            
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
+
             while (rs.next()) {
                 long postId = rs.getLong("postId");
                 long createdBy = rs.getLong("createdBy");
@@ -96,7 +98,7 @@ public class DatabaseServer {
                 Timestamp createdAt = rs.getTimestamp("createdAt");
                 String imagePath = rs.getString("imagePath");
                 boolean isPublic = rs.getBoolean("isPublic");
-                
+
                 posts.add(new Post(postId, createdBy, content, likedCnt, createdAt, imagePath, isPublic));
             }
         } catch (SQLException e) {
@@ -110,7 +112,9 @@ public class DatabaseServer {
         List<Comment> comments = new ArrayList<>();
         String query = "SELECT commentId, post, parent, createdBy, content, likedCnt, createdAt FROM comment";
 
-        try (Connection con = connect(); Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
+        try (Connection con = connect();
+                Statement stmt = con.createStatement();
+                ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 long commentId = rs.getLong("commentId");
                 long post = rs.getLong("post");
@@ -130,18 +134,19 @@ public class DatabaseServer {
 
     // 게시물 삽입 메서드 (예시)
     public boolean insertPost(Post post) {
-        //public Post(long createdBy, String content, int likedCnt, Timestamp createdAt,
-        //        String imagePath, boolean isPublic) {
+        // public Post(long createdBy, String content, int likedCnt, Timestamp
+        // createdAt,
+        // String imagePath, boolean isPublic) {
         String query = "INSERT INTO post (createdBy, content, likedCnt, createdAt, imagePath, isPublic) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection con = connect(); PreparedStatement pstmt = con.prepareStatement(query)) {
             // PreparedStatement에 파라미터 설정
             pstmt.setLong(1, post.getCreatedBy()); // 작성자 ID
             pstmt.setString(2, post.getContent()); // 게시물 내용
-            pstmt.setInt(3, post.getLikedCnt());   // 좋아요 수
+            pstmt.setInt(3, post.getLikedCnt()); // 좋아요 수
             pstmt.setTimestamp(4, post.getCreatedAt()); // 생성일
             pstmt.setString(5, post.getImagePath()); // 이미지 경로
-            pstmt.setBoolean(6,post.getIsPublic()); // public인지
+            pstmt.setBoolean(6, post.getIsPublic()); // public인지
 
             // 쿼리 실행
             int rowsAffected = pstmt.executeUpdate();
@@ -160,14 +165,14 @@ public class DatabaseServer {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    int count = rs.getInt(1);  // 결과에서 count 값을 얻어옵니다
-                    return count > 0;  // 이메일이 존재하면 true 반환
+                    int count = rs.getInt(1); // 결과에서 count 값을 얻어옵니다
+                    return count > 0; // 이메일이 존재하면 true 반환
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;  // 이메일이 존재하지 않으면 false 반환
+        return false; // 이메일이 존재하지 않으면 false 반환
     }
 
     public boolean addNewUser(User user) {
@@ -176,9 +181,9 @@ public class DatabaseServer {
             stmt.setString(1, user.getUsername());
             stmt.setString(2, user.getPassword());
             stmt.setString(3, user.getEmail());
-            stmt.setTimestamp(4, user.getCreatedAt());  // 현재 시간을 createdAt으 정
+            stmt.setTimestamp(4, user.getCreatedAt()); // 현재 시간을 createdAt으 정
             int rowsInserted = stmt.executeUpdate();
-            return rowsInserted > 0;  // 성공적으로 추가되면 true 반환
+            return rowsInserted > 0; // 성공적으로 추가되면 true 반환
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -188,7 +193,7 @@ public class DatabaseServer {
     public String getUsernameById(long userId) {
         String query = "SELECT username FROM user WHERE uid = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -204,21 +209,20 @@ public class DatabaseServer {
     public User getUserById(String userId) {
         String query = "SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt " +
                 "FROM user WHERE uid = ?";
-        try (Connection con = connect(); 
-             PreparedStatement stmt = con.prepareStatement(query)) {
+        try (Connection con = connect();
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setString(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new User(
-                        rs.getLong("uid"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("bio"),
-                        rs.getString("email"),
-                        rs.getInt("followerCnt"),
-                        rs.getInt("followingCnt"),
-                        rs.getTimestamp("createdAt")
-                    );
+                            rs.getLong("uid"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("bio"),
+                            rs.getString("email"),
+                            rs.getInt("followerCnt"),
+                            rs.getInt("followingCnt"),
+                            rs.getTimestamp("createdAt"));
                 }
             }
         } catch (SQLException e) {
@@ -230,21 +234,20 @@ public class DatabaseServer {
     public User getUserByUsername(String username) {
         String query = "SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt " +
                 "FROM user WHERE username = ?";
-        try (Connection con = connect(); 
-             PreparedStatement stmt = con.prepareStatement(query)) {
+        try (Connection con = connect();
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setString(1, username);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new User(
-                        rs.getLong("uid"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("bio"),
-                        rs.getString("email"),
-                        rs.getInt("followerCnt"),
-                        rs.getInt("followingCnt"),
-                        rs.getTimestamp("createdAt")
-                    );
+                            rs.getLong("uid"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("bio"),
+                            rs.getString("email"),
+                            rs.getInt("followerCnt"),
+                            rs.getInt("followingCnt"),
+                            rs.getTimestamp("createdAt"));
                 }
             }
         } catch (SQLException e) {
@@ -256,11 +259,11 @@ public class DatabaseServer {
     public boolean followUser(long followerId, long followingId) {
         String query = "INSERT INTO follow (subject, createdBy, followedAt) VALUES (?, ?, ?)";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, followingId);
             stmt.setLong(2, followerId);
             stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
-            
+
             int result = stmt.executeUpdate();
             if (result > 0) {
                 // 팔로워/팔로잉 카운트 업데이트
@@ -276,14 +279,14 @@ public class DatabaseServer {
     private void updateFollowCounts(long followerId, long followingId) {
         String updateFollowerQuery = "UPDATE user SET followerCnt = followerCnt + 1 WHERE uid = ?";
         String updateFollowingQuery = "UPDATE user SET followingCnt = followingCnt + 1 WHERE uid = ?";
-        
+
         try (Connection con = connect()) {
             try (PreparedStatement followerStmt = con.prepareStatement(updateFollowerQuery);
-                 PreparedStatement followingStmt = con.prepareStatement(updateFollowingQuery)) {
-                
+                    PreparedStatement followingStmt = con.prepareStatement(updateFollowingQuery)) {
+
                 followerStmt.setLong(1, followingId);
                 followingStmt.setLong(1, followerId);
-                
+
                 followerStmt.executeUpdate();
                 followingStmt.executeUpdate();
             }
@@ -294,9 +297,9 @@ public class DatabaseServer {
 
     public boolean addComment(Comment comment) {
         String query = "INSERT INTO comment (post, parent, createdBy, content, likedCnt, createdAt) " +
-                      "VALUES (?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, comment.getPost());
             if (comment.getParent() == 0) {
                 stmt.setNull(2, java.sql.Types.BIGINT); // parent가 0이면 NULL로 설정
@@ -317,7 +320,7 @@ public class DatabaseServer {
     public boolean updatePost(long postId, String newContent) {
         String query = "UPDATE post SET content = ? WHERE postId = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setString(1, newContent);
             stmt.setLong(2, postId);
             return stmt.executeUpdate() > 0;
@@ -340,9 +343,9 @@ public class DatabaseServer {
 
                 // 2. 댓글의 좋아요 삭제
                 String deleteCommentLikesQuery = """
-                    DELETE FROM commentLike 
-                    WHERE comment IN (SELECT commentId FROM comment WHERE post = ?)
-                    """;
+                        DELETE FROM commentLike
+                        WHERE comment IN (SELECT commentId FROM comment WHERE post = ?)
+                        """;
                 try (PreparedStatement stmt = con.prepareStatement(deleteCommentLikesQuery)) {
                     stmt.setLong(1, postId);
                     stmt.executeUpdate();
@@ -360,7 +363,7 @@ public class DatabaseServer {
                 try (PreparedStatement stmt = con.prepareStatement(deletePostQuery)) {
                     stmt.setLong(1, postId);
                     int result = stmt.executeUpdate();
-                    
+
                     if (result > 0) {
                         con.commit();
                         return true;
@@ -383,19 +386,18 @@ public class DatabaseServer {
     public Post getPostById(long postId) {
         String query = "SELECT * FROM post WHERE postId = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Post(
-                        rs.getLong("postId"),
-                        rs.getLong("createdBy"),
-                        rs.getString("content"),
-                        rs.getInt("likedCnt"),
-                        rs.getTimestamp("createdAt"),
-                        rs.getString("imagePath"),
-                        rs.getBoolean("isPublic")
-                    );
+                            rs.getLong("postId"),
+                            rs.getLong("createdBy"),
+                            rs.getString("content"),
+                            rs.getInt("likedCnt"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getString("imagePath"),
+                            rs.getBoolean("isPublic"));
                 }
             }
         } catch (SQLException e) {
@@ -404,26 +406,25 @@ public class DatabaseServer {
         return null;
     }
 
-    // 특정 게시물의 댓글만 가져오는 메서 
+    // 특정 게시물의 댓글만 가져오는 메서
     public List<Comment> getCommentsByPostId(long postId) {
         List<Comment> comments = new ArrayList<>();
         String query = "SELECT commentId, post, parent, createdBy, content, likedCnt, createdAt " +
-                      "FROM comment WHERE post = ? ORDER BY createdAt DESC";
+                "FROM comment WHERE post = ? ORDER BY createdAt DESC";
 
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     comments.add(new Comment(
-                        rs.getLong("commentId"),
-                        rs.getLong("post"),
-                        rs.getLong("parent"),
-                        rs.getLong("createdBy"),
-                        rs.getString("content"),
-                        rs.getInt("likedCnt"),
-                        rs.getTimestamp("createdAt")
-                    ));
+                            rs.getLong("commentId"),
+                            rs.getLong("post"),
+                            rs.getLong("parent"),
+                            rs.getLong("createdBy"),
+                            rs.getString("content"),
+                            rs.getInt("likedCnt"),
+                            rs.getTimestamp("createdAt")));
                 }
             }
         } catch (SQLException e) {
@@ -436,7 +437,7 @@ public class DatabaseServer {
     public boolean hasLikedComment(long commentId, long userId) {
         String query = "SELECT COUNT(*) FROM commentLike WHERE comment = ? AND likedBy = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, commentId);
             stmt.setLong(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -458,11 +459,11 @@ public class DatabaseServer {
 
         String insertQuery = "INSERT INTO commentLike (comment, likedBy, likedAt) VALUES (?, ?, ?)";
         String updateQuery = "UPDATE comment SET likedCnt = (SELECT COUNT(*) FROM commentLike WHERE comment = ?) WHERE commentId = ?";
-        
+
         try (Connection con = connect()) {
             con.setAutoCommit(false);
             try {
-                // commentLike 테이블에 추가
+                // commentLike 테이���에 추가
                 try (PreparedStatement stmt = con.prepareStatement(insertQuery)) {
                     stmt.setLong(1, commentId);
                     stmt.setLong(2, userId);
@@ -494,7 +495,7 @@ public class DatabaseServer {
     public boolean hasLikedPost(long postId, long userId) {
         String query = "SELECT COUNT(*) FROM postLike WHERE post = ? AND likedBy = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             stmt.setLong(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -516,11 +517,11 @@ public class DatabaseServer {
 
         String insertQuery = "INSERT INTO postLike (post, likedBy, likedAt) VALUES (?, ?, ?)";
         String updateQuery = "UPDATE post SET likedCnt = (SELECT COUNT(*) FROM postLike WHERE post = ?) WHERE postId = ?";
-        
+
         try (Connection con = connect()) {
             con.setAutoCommit(false);
             try {
-                // postLike 테이블에 추가
+                // postLike 테블에 추가
                 try (PreparedStatement stmt = con.prepareStatement(insertQuery)) {
                     stmt.setLong(1, postId);
                     stmt.setLong(2, userId);
@@ -552,7 +553,7 @@ public class DatabaseServer {
     public boolean isFollowing(long followerId, long followingId) {
         String query = "SELECT COUNT(*) FROM follow WHERE subject = ? AND createdBy = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, followingId);
             stmt.setLong(2, followerId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -577,22 +578,22 @@ public class DatabaseServer {
                     stmt.setLong(1, followingId);
                     stmt.setLong(2, followerId);
                     int result = stmt.executeUpdate();
-                    
+
                     if (result > 0) {
                         // 팔로워/팔로잉 카운트 감소
                         String updateFollowerQuery = "UPDATE user SET followerCnt = followerCnt - 1 WHERE uid = ?";
                         String updateFollowingQuery = "UPDATE user SET followingCnt = followingCnt - 1 WHERE uid = ?";
-                        
+
                         try (PreparedStatement followerStmt = con.prepareStatement(updateFollowerQuery);
-                             PreparedStatement followingStmt = con.prepareStatement(updateFollowingQuery)) {
-                            
+                                PreparedStatement followingStmt = con.prepareStatement(updateFollowingQuery)) {
+
                             followerStmt.setLong(1, followingId);
                             followingStmt.setLong(1, followerId);
-                            
+
                             followerStmt.executeUpdate();
                             followingStmt.executeUpdate();
                         }
-                        
+
                         con.commit();
                         return true;
                     }
@@ -614,68 +615,68 @@ public class DatabaseServer {
         List<Post> posts = new ArrayList<>();
         String query = switch (filter) {
             case "Following" -> """
-                SELECT 
-                    p.postId, p.createdBy, p.content, p.likedCnt, 
-                    p.createdAt, p.imagePath, p.isPublic
-                FROM post p
-                INNER JOIN follow f ON p.createdBy = f.subject
-                WHERE f.createdBy = ? 
-                AND (p.isPublic = true OR p.createdBy = ? OR EXISTS (
-                    SELECT 1 FROM follow f2 
-                    WHERE f2.subject = ? 
-                    AND f2.createdBy = p.createdBy
-                ))
-                ORDER BY p.createdAt DESC
-                """;
-            case "Hot" -> """
-                SELECT 
-                    p.postId, p.createdBy, p.content, p.likedCnt, 
-                    p.createdAt, p.imagePath, p.isPublic
-                FROM post p
-                WHERE p.isPublic = true 
-                OR p.createdBy = ? 
-                OR EXISTS (
-                    SELECT 1 FROM follow f 
-                    WHERE f.subject = ? 
-                    AND f.createdBy = p.createdBy
-                )
-                ORDER BY p.likedCnt DESC, p.createdAt DESC
-                """;
-            case "Scraped" -> """
-                SELECT 
-                    p.postId, p.createdBy, p.content, p.likedCnt, 
-                    p.createdAt, p.imagePath, p.isPublic
-                FROM post p
-                INNER JOIN scrap s ON p.postId = s.post
-                WHERE s.scrappedBy = ? 
-                AND (p.isPublic = true 
-                    OR p.createdBy = ? 
-                    OR EXISTS (
-                        SELECT 1 FROM follow f 
-                        WHERE f.subject = ? 
-                        AND f.createdBy = p.createdBy
+                    SELECT
+                        p.postId, p.createdBy, p.content, p.likedCnt,
+                        p.createdAt, p.imagePath, p.isPublic
+                    FROM post p
+                    INNER JOIN follow f ON p.createdBy = f.subject
+                    WHERE f.createdBy = ?
+                    AND (p.isPublic = true OR p.createdBy = ? OR EXISTS (
+                        SELECT 1 FROM follow f2
+                        WHERE f2.subject = ?
+                        AND f2.createdBy = p.createdBy
                     ))
-                ORDER BY s.scrappedAt DESC
-                """;
+                    ORDER BY p.createdAt DESC
+                    """;
+            case "Hot" -> """
+                    SELECT
+                        p.postId, p.createdBy, p.content, p.likedCnt,
+                        p.createdAt, p.imagePath, p.isPublic
+                    FROM post p
+                    WHERE p.isPublic = true
+                    OR p.createdBy = ?
+                    OR EXISTS (
+                        SELECT 1 FROM follow f
+                        WHERE f.subject = ?
+                        AND f.createdBy = p.createdBy
+                    )
+                    ORDER BY p.likedCnt DESC, p.createdAt DESC
+                    """;
+            case "Scraped" -> """
+                    SELECT
+                        p.postId, p.createdBy, p.content, p.likedCnt,
+                        p.createdAt, p.imagePath, p.isPublic
+                    FROM post p
+                    INNER JOIN scrap s ON p.postId = s.post
+                    WHERE s.scrappedBy = ?
+                    AND (p.isPublic = true
+                        OR p.createdBy = ?
+                        OR EXISTS (
+                            SELECT 1 FROM follow f
+                            WHERE f.subject = ?
+                            AND f.createdBy = p.createdBy
+                        ))
+                    ORDER BY s.scrappedAt DESC
+                    """;
             default -> """
-                SELECT 
-                    p.postId, p.createdBy, p.content, p.likedCnt, 
-                    p.createdAt, p.imagePath, p.isPublic
-                FROM post p
-                WHERE p.isPublic = true 
-                OR p.createdBy = ? 
-                OR EXISTS (
-                    SELECT 1 FROM follow f 
-                    WHERE f.subject = ? 
-                    AND f.createdBy = p.createdBy
-                )
-                ORDER BY p.createdAt DESC
-                """;
+                    SELECT
+                        p.postId, p.createdBy, p.content, p.likedCnt,
+                        p.createdAt, p.imagePath, p.isPublic
+                    FROM post p
+                    WHERE p.isPublic = true
+                    OR p.createdBy = ?
+                    OR EXISTS (
+                        SELECT 1 FROM follow f
+                        WHERE f.subject = ?
+                        AND f.createdBy = p.createdBy
+                    )
+                    ORDER BY p.createdAt DESC
+                    """;
         };
-        
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
-            
+                PreparedStatement stmt = con.prepareStatement(query)) {
+
             switch (filter) {
                 case "Following" -> {
                     stmt.setLong(1, userId);
@@ -692,18 +693,17 @@ public class DatabaseServer {
                     stmt.setLong(2, userId);
                 }
             }
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     posts.add(new Post(
-                        rs.getLong("postId"),
-                        rs.getLong("createdBy"),
-                        rs.getString("content"),
-                        rs.getInt("likedCnt"),
-                        rs.getTimestamp("createdAt"),
-                        rs.getString("imagePath"),
-                        rs.getBoolean("isPublic")
-                    ));
+                            rs.getLong("postId"),
+                            rs.getLong("createdBy"),
+                            rs.getString("content"),
+                            rs.getInt("likedCnt"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getString("imagePath"),
+                            rs.getBoolean("isPublic")));
                 }
             }
         } catch (SQLException e) {
@@ -716,7 +716,7 @@ public class DatabaseServer {
     public boolean deleteComment(long commentId) {
         String query = "DELETE FROM comment WHERE commentId = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, commentId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -729,7 +729,7 @@ public class DatabaseServer {
     public boolean unlikePost(long postId, long userId) {
         String deleteQuery = "DELETE FROM postLike WHERE post = ? AND likedBy = ?";
         String updateQuery = "UPDATE post SET likedCnt = (SELECT COUNT(*) FROM postLike WHERE post = ?) WHERE postId = ?";
-        
+
         try (Connection con = connect()) {
             con.setAutoCommit(false);
             try {
@@ -764,7 +764,7 @@ public class DatabaseServer {
     public boolean unlikeComment(long commentId, long userId) {
         String deleteQuery = "DELETE FROM commentLike WHERE comment = ? AND likedBy = ?";
         String updateQuery = "UPDATE comment SET likedCnt = (SELECT COUNT(*) FROM commentLike WHERE comment = ?) WHERE commentId = ?";
-        
+
         try (Connection con = connect()) {
             con.setAutoCommit(false);
             try {
@@ -775,7 +775,7 @@ public class DatabaseServer {
                     stmt.executeUpdate();
                 }
 
-                // comment 테이블의 likedCnt 업데이트
+                // comment 이블의 likedCnt 업데이트
                 try (PreparedStatement stmt = con.prepareStatement(updateQuery)) {
                     stmt.setLong(1, commentId);
                     stmt.setLong(2, commentId);
@@ -799,7 +799,7 @@ public class DatabaseServer {
     public boolean isPostOwner(long postId, long userId) {
         String query = "SELECT createdBy FROM post WHERE postId = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -816,7 +816,7 @@ public class DatabaseServer {
     public boolean isCommentOwner(long commentId, long userId) {
         String query = "SELECT createdBy FROM comment WHERE commentId = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, commentId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -833,7 +833,7 @@ public class DatabaseServer {
     public boolean hasScraped(long postId, long userId) {
         String query = "SELECT COUNT(*) FROM scrap WHERE post = ? AND scrappedBy = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             stmt.setLong(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -855,7 +855,7 @@ public class DatabaseServer {
 
         String query = "INSERT INTO scrap (post, scrappedBy, scrappedAt) VALUES (?, ?, ?)";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             stmt.setLong(2, userId);
             stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
@@ -870,7 +870,7 @@ public class DatabaseServer {
     public boolean removeScrap(long postId, long userId) {
         String query = "DELETE FROM scrap WHERE post = ? AND scrappedBy = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, postId);
             stmt.setLong(2, userId);
             return stmt.executeUpdate() > 0;
@@ -884,7 +884,7 @@ public class DatabaseServer {
     public boolean sendMessage(long senderId, long receiverId, String content) {
         String query = "INSERT INTO chat (senderId, receiverId, message, createdAt, isRead) VALUES (?, ?, ?, ?, false)";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, senderId);
             stmt.setLong(2, receiverId);
             stmt.setString(3, content);
@@ -898,11 +898,11 @@ public class DatabaseServer {
 
     public boolean addChatPartner(long senderId, long receiverId) {
         String checkExistingChatQuery = """
-        SELECT COUNT(*) 
-        FROM chat 
-        WHERE (senderId = ? AND receiverId = ?) 
-        OR (senderId = ? AND receiverId = ?)
-    """;
+                    SELECT COUNT(*)
+                    FROM chat
+                    WHERE (senderId = ? AND receiverId = ?)
+                    OR (senderId = ? AND receiverId = ?)
+                """;
 
         try (Connection con = connect()) {
             // 기존 대화 여부 확인
@@ -932,28 +932,27 @@ public class DatabaseServer {
     public List<ChatMessage> getReceivedMessages(long userId) {
         List<ChatMessage> messages = new ArrayList<>();
         String query = """
-            SELECT c.*, u.username as senderName 
-            FROM chat c 
-            JOIN user u ON c.senderId = u.uid 
-            WHERE c.receiverId = ? 
-            ORDER BY c.createdAt DESC
-            """;
+                SELECT c.*, u.username as senderName
+                FROM chat c
+                JOIN user u ON c.senderId = u.uid
+                WHERE c.receiverId = ?
+                ORDER BY c.createdAt DESC
+                """;
 
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     messages.add(new ChatMessage(
-                        rs.getLong("chatId"),
-                        rs.getLong("senderId"),
-                        rs.getString("senderName"),
-                        rs.getLong("receiverId"),
-                        rs.getString("message"),
-                        rs.getTimestamp("createdAt"),
-                        rs.getBoolean("isRead"),
-                            rs.getString("filePath")
-                    ));
+                            rs.getLong("chatId"),
+                            rs.getLong("senderId"),
+                            rs.getString("senderName"),
+                            rs.getLong("receiverId"),
+                            rs.getString("message"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getBoolean("isRead"),
+                            rs.getString("filePath")));
                 }
             }
         } catch (SQLException e) {
@@ -966,28 +965,27 @@ public class DatabaseServer {
     public List<ChatMessage> getSentMessages(long userId) {
         List<ChatMessage> messages = new ArrayList<>();
         String query = """
-            SELECT c.*, u.username as receiverName 
-            FROM chat c 
-            JOIN user u ON c.receiverId = u.uid 
-            WHERE c.senderId = ? 
-            ORDER BY c.createdAt DESC
-            """;
+                SELECT c.*, u.username as receiverName
+                FROM chat c
+                JOIN user u ON c.receiverId = u.uid
+                WHERE c.senderId = ?
+                ORDER BY c.createdAt DESC
+                """;
 
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     messages.add(new ChatMessage(
-                        rs.getLong("chatId"),
-                        rs.getLong("senderId"),
-                        rs.getString("receiverName"),
-                        rs.getLong("receiverId"),
-                        rs.getString("message"),
-                        rs.getTimestamp("createdAt"),
-                        rs.getBoolean("isRead"),
-                            rs.getString("filePath")
-                    ));
+                            rs.getLong("chatId"),
+                            rs.getLong("senderId"),
+                            rs.getString("receiverName"),
+                            rs.getLong("receiverId"),
+                            rs.getString("message"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getBoolean("isRead"),
+                            rs.getString("filePath")));
                 }
             }
         } catch (SQLException e) {
@@ -1000,7 +998,7 @@ public class DatabaseServer {
     public boolean markMessageAsRead(long messageId) {
         String query = "UPDATE chat SET isRead = true WHERE chatId = ?";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, messageId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -1013,7 +1011,7 @@ public class DatabaseServer {
     public int getUnreadMessageCount(long userId) {
         String query = "SELECT COUNT(*) FROM chat WHERE receiverId = ? AND isRead = false";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -1030,39 +1028,38 @@ public class DatabaseServer {
     public List<User> getChatPartners(long userId) {
         List<User> partners = new ArrayList<>();
         String query = """
-            SELECT DISTINCT u.* 
-            FROM user u 
-            JOIN chat c ON (u.uid = c.senderId OR u.uid = c.receiverId)
-            WHERE (c.senderId = ? OR c.receiverId = ?) 
-            AND u.uid != ?
-            ORDER BY (
-                SELECT MAX(createdAt) 
-                FROM chat 
-                WHERE (senderId = ? AND receiverId = u.uid) 
-                OR (senderId = u.uid AND receiverId = ?)
-            ) DESC
-            """;
-        
+                SELECT DISTINCT u.*
+                FROM user u
+                JOIN chat c ON (u.uid = c.senderId OR u.uid = c.receiverId)
+                WHERE (c.senderId = ? OR c.receiverId = ?)
+                AND u.uid != ?
+                ORDER BY (
+                    SELECT MAX(createdAt)
+                    FROM chat
+                    WHERE (senderId = ? AND receiverId = u.uid)
+                    OR (senderId = u.uid AND receiverId = ?)
+                ) DESC
+                """;
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
             stmt.setLong(2, userId);
             stmt.setLong(3, userId);
             stmt.setLong(4, userId);
             stmt.setLong(5, userId);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     partners.add(new User(
-                        rs.getLong("uid"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("bio"),
-                        rs.getString("email"),
-                        rs.getInt("followerCnt"),
-                        rs.getInt("followingCnt"),
-                        rs.getTimestamp("createdAt")
-                    ));
+                            rs.getLong("uid"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("bio"),
+                            rs.getString("email"),
+                            rs.getInt("followerCnt"),
+                            rs.getInt("followingCnt"),
+                            rs.getTimestamp("createdAt")));
                 }
             }
         } catch (SQLException e) {
@@ -1075,36 +1072,35 @@ public class DatabaseServer {
     public List<ChatMessage> getChatHistory(long userId, long partnerId) {
         List<ChatMessage> messages = new ArrayList<>();
         String query = """
-            SELECT c.*, 
-                   s.username as senderName,
-                   r.username as receiverName
-            FROM chat c
-            JOIN user s ON c.senderId = s.uid
-            JOIN user r ON c.receiverId = r.uid
-            WHERE (c.senderId = ? AND c.receiverId = ?)
-            OR (c.senderId = ? AND c.receiverId = ?)
-            ORDER BY c.createdAt ASC
-            """;
-        
+                SELECT c.*,
+                       s.username as senderName,
+                       r.username as receiverName
+                FROM chat c
+                JOIN user s ON c.senderId = s.uid
+                JOIN user r ON c.receiverId = r.uid
+                WHERE (c.senderId = ? AND c.receiverId = ?)
+                OR (c.senderId = ? AND c.receiverId = ?)
+                ORDER BY c.createdAt ASC
+                """;
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
             stmt.setLong(2, partnerId);
             stmt.setLong(3, partnerId);
             stmt.setLong(4, userId);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     messages.add(new ChatMessage(
-                        rs.getLong("chatId"),
-                        rs.getLong("senderId"),
-                        rs.getString("senderName"),
-                        rs.getLong("receiverId"),
-                        rs.getString("message"),
-                        rs.getTimestamp("createdAt"),
-                        rs.getBoolean("isRead"),
-                            rs.getString("filePath")
-                    ));
+                            rs.getLong("chatId"),
+                            rs.getLong("senderId"),
+                            rs.getString("senderName"),
+                            rs.getLong("receiverId"),
+                            rs.getString("message"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getBoolean("isRead"),
+                            rs.getString("filePath")));
                 }
             }
         } catch (SQLException e) {
@@ -1117,7 +1113,7 @@ public class DatabaseServer {
     public int getUnreadMessageCountFromUser(long userId, long partnerId) {
         String query = "SELECT COUNT(*) FROM chat WHERE senderId = ? AND receiverId = ? AND isRead = false";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, partnerId);
             stmt.setLong(2, userId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -1137,10 +1133,10 @@ public class DatabaseServer {
             try {
                 // 1. Delete the chat messages directly
                 String deleteChatsQuery = """
-                DELETE FROM chat 
-                WHERE (senderId = ? AND receiverId = ?)
-                   OR (senderId = ? AND receiverId = ?);
-            """;
+                            DELETE FROM chat
+                            WHERE (senderId = ? AND receiverId = ?)
+                               OR (senderId = ? AND receiverId = ?);
+                        """;
                 try (PreparedStatement stmt = con.prepareStatement(deleteChatsQuery)) {
                     stmt.setLong(1, userId);
                     stmt.setLong(2, partnerId);
@@ -1170,7 +1166,7 @@ public class DatabaseServer {
     public boolean sendMessageWithFile(long senderId, long receiverId, String content, String filePath) {
         String query = "INSERT INTO chat (senderId, receiverId, message, filePath, createdAt, isRead) VALUES (?, ?, ?, ?, ?, false)";
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, senderId);
             stmt.setLong(2, receiverId);
             stmt.setString(3, content);
@@ -1186,29 +1182,28 @@ public class DatabaseServer {
     public List<User> searchUsers(String keyword) {
         List<User> users = new ArrayList<>();
         String query = """
-            SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt 
-            FROM user 
-            WHERE username LIKE ? OR bio LIKE ?
-            """;
-            
+                SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt
+                FROM user
+                WHERE username LIKE ? OR bio LIKE ?
+                """;
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             String searchPattern = "%" + keyword + "%";
             stmt.setString(1, searchPattern);
             stmt.setString(2, searchPattern);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     users.add(new User(
-                        rs.getLong("uid"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("bio"),
-                        rs.getString("email"),
-                        rs.getInt("followerCnt"),
-                        rs.getInt("followingCnt"),
-                        rs.getTimestamp("createdAt")
-                    ));
+                            rs.getLong("uid"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("bio"),
+                            rs.getString("email"),
+                            rs.getInt("followerCnt"),
+                            rs.getInt("followingCnt"),
+                            rs.getTimestamp("createdAt")));
                 }
             }
         } catch (SQLException e) {
@@ -1220,42 +1215,41 @@ public class DatabaseServer {
     public List<Post> searchPosts(String keyword, long currentUserId) {
         List<Post> posts = new ArrayList<>();
         String query = """
-            SELECT p.* 
-            FROM post p
-            WHERE (p.content LIKE ? OR EXISTS (
-                SELECT 1 FROM user u 
-                WHERE u.uid = p.createdBy 
-                AND u.username LIKE ?
-            ))
-            AND (p.isPublic = true 
-                OR p.createdBy = ? 
-                OR EXISTS (
-                    SELECT 1 FROM follow f 
-                    WHERE f.subject = ? 
-                    AND f.createdBy = p.createdBy
+                SELECT p.*
+                FROM post p
+                WHERE (p.content LIKE ? OR EXISTS (
+                    SELECT 1 FROM user u
+                    WHERE u.uid = p.createdBy
+                    AND u.username LIKE ?
                 ))
-            ORDER BY p.createdAt DESC
-            """;
-            
+                AND (p.isPublic = true
+                    OR p.createdBy = ?
+                    OR EXISTS (
+                        SELECT 1 FROM follow f
+                        WHERE f.subject = ?
+                        AND f.createdBy = p.createdBy
+                    ))
+                ORDER BY p.createdAt DESC
+                """;
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             String searchPattern = "%" + keyword + "%";
             stmt.setString(1, searchPattern);
             stmt.setString(2, searchPattern);
             stmt.setLong(3, currentUserId);
             stmt.setLong(4, currentUserId);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     posts.add(new Post(
-                        rs.getLong("postId"),
-                        rs.getLong("createdBy"),
-                        rs.getString("content"),
-                        rs.getInt("likedCnt"),
-                        rs.getTimestamp("createdAt"),
-                        rs.getString("imagePath"),
-                        rs.getBoolean("isPublic")
-                    ));
+                            rs.getLong("postId"),
+                            rs.getLong("createdBy"),
+                            rs.getString("content"),
+                            rs.getInt("likedCnt"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getString("imagePath"),
+                            rs.getBoolean("isPublic")));
                 }
             }
         } catch (SQLException e) {
@@ -1268,38 +1262,37 @@ public class DatabaseServer {
         List<User> followers = new ArrayList<>();
         // 팔로워 목록: userId를 팔로우하는 사용자들
         String query = """
-            SELECT u.* FROM user u
-            JOIN follow f ON u.uid = f.createdBy
-            WHERE f.subject = ?
-            ORDER BY u.username
-        """;
-        
+                    SELECT u.* FROM user u
+                    JOIN follow f ON u.uid = f.createdBy
+                    WHERE f.subject = ?
+                    ORDER BY u.username
+                """;
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
-            
+
             // 쿼리 결과 확인을 위한 로그
             System.out.println("Executing followers query for userId: " + userId);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     followers.add(new User(
-                        rs.getLong("uid"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("bio"),
-                        rs.getString("email"),
-                        rs.getInt("followerCnt"),
-                        rs.getInt("followingCnt"),
-                        rs.getTimestamp("createdAt")
-                    ));
+                            rs.getLong("uid"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("bio"),
+                            rs.getString("email"),
+                            rs.getInt("followerCnt"),
+                            rs.getInt("followingCnt"),
+                            rs.getTimestamp("createdAt")));
                 }
             }
         } catch (SQLException e) {
             System.out.println("Error getting followers: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         System.out.println("Found " + followers.size() + " followers");
         return followers;
     }
@@ -1308,40 +1301,195 @@ public class DatabaseServer {
         List<User> following = new ArrayList<>();
         // 팔로잉 목록: userId가 팔로우하는 사용자들
         String query = """
-            SELECT u.* FROM user u
-            JOIN follow f ON u.uid = f.subject
-            WHERE f.createdBy = ?
-            ORDER BY u.username
-        """;
-        
+                    SELECT u.* FROM user u
+                    JOIN follow f ON u.uid = f.subject
+                    WHERE f.createdBy = ?
+                    ORDER BY u.username
+                """;
+
         try (Connection con = connect();
-             PreparedStatement stmt = con.prepareStatement(query)) {
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setLong(1, userId);
-            
-            // 쿼리 결과 확인을 위한 로그
+
+            // 쿼리 결과 확인을 위 로그
             System.out.println("Executing following query for userId: " + userId);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     following.add(new User(
-                        rs.getLong("uid"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("bio"),
-                        rs.getString("email"),
-                        rs.getInt("followerCnt"),
-                        rs.getInt("followingCnt"),
-                        rs.getTimestamp("createdAt")
-                    ));
+                            rs.getLong("uid"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("bio"),
+                            rs.getString("email"),
+                            rs.getInt("followerCnt"),
+                            rs.getInt("followingCnt"),
+                            rs.getTimestamp("createdAt")));
                 }
             }
         } catch (SQLException e) {
             System.out.println("Error getting following: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         System.out.println("Found " + following.size() + " following");
         return following;
+    }
+
+    // 해시태그 추출 메서드 개선
+    private List<String> extractHashtags(String content) {
+        List<String> hashtags = new ArrayList<>();
+        // 정규식을 사용하여 해시태그 추출
+        // #으로 시작하고 그 뒤에 문자, 숫자, 한글이 하나 이상 오는 패턴
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("#([\\w가-힣]+)");
+        java.util.regex.Matcher matcher = pattern.matcher(content);
+
+        while (matcher.find()) {
+            // 그룹 1(괄호 안의 내용)을 가져옴 - # 기호를 제외한 실제 태그
+            String tag = matcher.group(1);
+            if (!tag.isEmpty()) {
+                hashtags.add(tag);
+            }
+        }
+
+        System.out.println("Extracted hashtags: " + hashtags); // 디버깅용 로그
+        return hashtags;
+    }
+
+    // 시태그 저장 메서드
+    private void saveHashtags(long postId, List<String> hashtags) {
+        String insertLinkQuery = "INSERT INTO hashtag (postId, hashtag) VALUES (?, ?)";
+
+        try (Connection con = connect()) {
+            con.setAutoCommit(false);
+            try {
+                for (String tag : hashtags) {
+                    // 포스트-해시태그 연결
+                    try (PreparedStatement stmt = con.prepareStatement(insertLinkQuery)) {
+                        stmt.setLong(1, postId);
+                        stmt.setString(2, tag);
+                        stmt.execute();
+                    }
+                }
+                con.commit();
+            } catch (SQLException e) {
+                con.rollback();
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 해시태그로 게시물 검색
+    public List<Post> searchPostsByHashtag(String hashtag, long currentUserId) {
+        List<Post> posts = new ArrayList<>();
+        String query = """
+                    SELECT DISTINCT p.* FROM post p
+                    JOIN hashtag h ON p.postId = h.postId
+                    WHERE h.hashtag = ?
+                    AND (p.isPublic = true
+                        OR p.createdBy = ?
+                        OR EXISTS (
+                            SELECT 1 FROM follow f
+                            WHERE f.subject = ?
+                            AND f.createdBy = p.createdBy
+                        ))
+                    ORDER BY p.createdAt DESC
+                """;
+
+        try (Connection con = connect();
+                PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setString(1, hashtag);
+            stmt.setLong(2, currentUserId);
+            stmt.setLong(3, currentUserId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    posts.add(new Post(
+                            rs.getLong("postId"),
+                            rs.getLong("createdBy"),
+                            rs.getString("content"),
+                            rs.getInt("likedCnt"),
+                            rs.getTimestamp("createdAt"),
+                            rs.getString("imagePath"),
+                            rs.getBoolean("isPublic")));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return posts;
+    }
+
+    // 게시물 작성 시 해시태그도 함께 저장
+    public boolean addPost(Post post) {
+        String postQuery = "INSERT INTO post (createdBy, content, likedCnt, createdAt, imagePath, isPublic) VALUES (?, ?, ?, ?, ?, ?)";
+        String hashtagQuery = "INSERT INTO hashtag (postId, hashtag) VALUES (?, ?)";
+
+        Connection con = null;
+        try {
+            con = connect();
+            con.setAutoCommit(false);
+
+            // 1. 게시물 저장
+            PreparedStatement postStmt = con.prepareStatement(postQuery, Statement.RETURN_GENERATED_KEYS);
+            postStmt.setLong(1, post.getCreatedBy());
+            postStmt.setString(2, post.getContent());
+            postStmt.setInt(3, 0);
+            postStmt.setTimestamp(4, post.getCreatedAt());
+            postStmt.setString(5, post.getImagePath());
+            postStmt.setBoolean(6, post.getIsPublic());
+
+            int postResult = postStmt.executeUpdate();
+
+            if (postResult > 0) {
+                // 2. 생성된 게시물의 ID 가져오기
+                ResultSet rs = postStmt.getGeneratedKeys();
+                if (rs.next()) {
+                    long postId = rs.getLong(1);
+
+                    // 3. 해시태그 저장
+                    List<String> hashtags = extractHashtags(post.getContent());
+                    if (!hashtags.isEmpty()) {
+                        PreparedStatement hashtagStmt = con.prepareStatement(hashtagQuery);
+                        for (String tag : hashtags) {
+                            hashtagStmt.setLong(1, postId);
+                            hashtagStmt.setString(2, tag);
+                            hashtagStmt.executeUpdate();
+                        }
+                    }
+
+                    // 4. 모든 작업이 성공하면 커밋
+                    con.commit();
+                    return true;
+                }
+            }
+
+            // 실패 시 롤백
+            con.rollback();
+            return false;
+
+        } catch (SQLException e) {
+            try {
+                if (con != null) {
+                    con.rollback();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (con != null) {
+                    con.setAutoCommit(true);
+                    con.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

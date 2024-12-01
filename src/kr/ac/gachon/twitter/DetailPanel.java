@@ -80,40 +80,41 @@ public class DetailPanel extends JPanel {
         mainContentPanel.add(commentInputPanel);
 
         /*
-
-        // 버튼 너비를 80으로 하고, 입력 필드는 스크롤바 너비까지 고려해서 조정
-        submitButton.setPreferredSize(new Dimension(80, 30));
-        commentField.setPreferredSize(new Dimension(contentWidth - 80, 30));
-
-        submitButton.addActionListener(e -> {
-            String content = commentField.getText();
-            if (!content.isEmpty()) {
-                DatabaseServer db = new DatabaseServer();
-                Comment newComment = new Comment(
-                        0,
-                        post.getPostId(),
-                        0,
-                        currentUser.getUid(),
-                        content,
-                        0,
-                        new Timestamp(System.currentTimeMillis()));
-
-                if (db.addComment(newComment)) {
-                    commentField.setText("");
-                    refreshComments();
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                            "Failed to add comment",
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-
-        commentInputPanel.add(commentField, BorderLayout.CENTER);
-        commentInputPanel.add(submitButton, BorderLayout.EAST);
-
-        mainContentPanel.add(commentInputPanel); */
+         * 
+         * // 버튼 너비를 80으로 하고, 입력 필드는 스크롤바 너비까지 고려해서 조정
+         * submitButton.setPreferredSize(new Dimension(80, 30));
+         * commentField.setPreferredSize(new Dimension(contentWidth - 80, 30));
+         * 
+         * submitButton.addActionListener(e -> {
+         * String content = commentField.getText();
+         * if (!content.isEmpty()) {
+         * DatabaseServer db = new DatabaseServer();
+         * Comment newComment = new Comment(
+         * 0,
+         * post.getPostId(),
+         * 0,
+         * currentUser.getUid(),
+         * content,
+         * 0,
+         * new Timestamp(System.currentTimeMillis()));
+         * 
+         * if (db.addComment(newComment)) {
+         * commentField.setText("");
+         * refreshComments();
+         * } else {
+         * JOptionPane.showMessageDialog(this,
+         * "Failed to add comment",
+         * "Error",
+         * JOptionPane.ERROR_MESSAGE);
+         * }
+         * }
+         * });
+         * 
+         * commentInputPanel.add(commentField, BorderLayout.CENTER);
+         * commentInputPanel.add(submitButton, BorderLayout.EAST);
+         * 
+         * mainContentPanel.add(commentInputPanel);
+         */
 
         // 댓글 목록 패널
         messagesPanel = new JPanel();
@@ -317,11 +318,56 @@ public class DetailPanel extends JPanel {
             }
         });
 
-        // 글 내용
-        JLabel contentLabel = new JLabel();
-        contentLabel.setText(post.getContent());
-        contentLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        contentLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // 글 내용을 해시태그가 클릭 가능하도록 변환
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        contentPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        String[] words = post.getContent().split("\\s+");
+        for (String word : words) {
+            if (word.startsWith("#")) {
+                // 해시태그인 경우 클릭 가능한 라벨로 생성
+                JLabel hashtagLabel = new JLabel(word);
+                hashtagLabel.setForeground(new Color(29, 161, 242));
+                hashtagLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                hashtagLabel.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        // SearchPanel로 이동하고 해시태그 검색 수행
+                        Container parent = getParent();
+                        while (parent != null && !(parent instanceof JPanel)) {
+                            parent = parent.getParent();
+                        }
+                        if (parent != null) {
+                            SearchPanel searchPanel = new SearchPanel();
+                            parent.add(searchPanel, "Search");
+                            CardLayout layout = (CardLayout) parent.getLayout();
+                            layout.show(parent, "Search");
+                            // 해시태그 검색 수행
+                            searchPanel.performSearch(word);
+                        }
+                    }
+
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        hashtagLabel.setForeground(new Color(20, 120, 180));
+                    }
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        hashtagLabel.setForeground(new Color(29, 161, 242));
+                    }
+                });
+                contentPanel.add(hashtagLabel);
+            } else {
+                // 일반 텍스트인 경우
+                contentPanel.add(new JLabel(word));
+            }
+            contentPanel.add(new JLabel(" ")); // 단어 사이에 공백 추가
+        }
+
+        // contentLabel 대신 contentPanel을 추가
+        headerPanel.add(contentPanel);
 
         // 이미지가 있는 경우 표시
         JLabel imageLabel = null;
@@ -458,7 +504,7 @@ public class DetailPanel extends JPanel {
 
         headerPanel.add(usernameLabel);
         headerPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        headerPanel.add(contentLabel);
+        headerPanel.add(contentPanel);
 
         // 이미지가 있는 경우 추가
         if (imageLabel != null) {
@@ -475,15 +521,16 @@ public class DetailPanel extends JPanel {
     private JButton BackPage(String filePath) {
         try {
             // 이미지 로드 및 크기 조정
-            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
+            ImageIcon icon = new ImageIcon(
+                    new ImageIcon(filePath).getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
             // 버튼 생성
             JButton imageButton = new JButton(icon);
 
             // 버튼 스타일 제거 (이미지처럼 보이게 설정)
-            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setBorderPainted(false); // 외곽선 제거
             imageButton.setContentAreaFilled(false);
-            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+            imageButton.setFocusPainted(false); // 포커스 표시 제거
 
             // 클릭 이벤트 추가
             imageButton.addActionListener(e -> {
@@ -510,15 +557,16 @@ public class DetailPanel extends JPanel {
     private JButton subMitComment(String filePath, int width, int height) {
         try {
             // 이미지 로드 및 크기 조정
-            ImageIcon icon = new ImageIcon(new ImageIcon(filePath).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+            ImageIcon icon = new ImageIcon(
+                    new ImageIcon(filePath).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
 
             // 버튼 생성
             JButton imageButton = new JButton(icon);
 
             // 버튼 스타일 제거 (이미지처럼 보이게 설정)
-            imageButton.setBorderPainted(false);    // 외곽선 제거
+            imageButton.setBorderPainted(false); // 외곽선 제거
             imageButton.setContentAreaFilled(false); // 배경 제거
-            imageButton.setFocusPainted(false);     // 포커스 표시 제거
+            imageButton.setFocusPainted(false); // 포커스 표시 제거
 
             return imageButton;
         } catch (Exception e) {
