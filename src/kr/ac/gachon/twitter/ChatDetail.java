@@ -336,7 +336,7 @@ public class ChatDetail extends JPanel {
         }
 
         // Save 버튼 대신 이미지 버튼 생성
-        JButton saveImageButton = createImageButton("images/Download@2x.png");
+        JButton saveImageButton = createImageButton("images/Download.png");
 
         // 닫기 버튼 생성
         // JButton closeButton = backButton("C:/Users/gram/Downloads/X.png");
