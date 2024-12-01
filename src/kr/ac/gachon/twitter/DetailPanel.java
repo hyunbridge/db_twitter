@@ -46,7 +46,7 @@ public class DetailPanel extends JPanel {
         commentInputPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField commentField = new JTextField();
-        JButton submitButton = subMitComment("C:/Users/gram/Downloads/Send.png", 30, 30);
+        JButton submitButton = subMitComment("images/Send.png", 30, 30);
 
         submitButton.addActionListener(e -> {
             String content = commentField.getText();
@@ -132,7 +132,7 @@ public class DetailPanel extends JPanel {
         // 하단 버튼 패널
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 5));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        JButton backButton = BackPage("C:/Users/gram/Downloads/Arrow left.png");
+        JButton backButton = BackPage("images/Arrow left.png");
 
         bottomPanel.add(backButton);
         add(bottomPanel, BorderLayout.SOUTH);

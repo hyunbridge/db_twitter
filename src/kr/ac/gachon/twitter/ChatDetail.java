@@ -41,7 +41,7 @@ public class ChatDetail extends JPanel {
         // 상대방 프로필 이미지 경로 가져오기
         String profileImagePath = partner.getProfileImage();
         if (profileImagePath == null || profileImagePath.isEmpty()) {
-            profileImagePath = "C:/Users/gram/Downloads/twitter_profile.png";
+            profileImagePath = "images/profile_default.png";
         }
 
         // 프로필 이미지 설정
@@ -83,7 +83,7 @@ public class ChatDetail extends JPanel {
         headerPanel.add(partnerNameLabel);
 
         // Delete Button
-        JButton deleteButton = deleteChatButton("C:/Users/gram/Downloads/delete.png");
+        JButton deleteButton = deleteChatButton("images/delete.png");
 
         // *** MODIFIED: Delete button alignment ***
         deleteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -336,7 +336,7 @@ public class ChatDetail extends JPanel {
         }
 
         // Save 버튼 대신 이미지 버튼 생성
-        JButton saveImageButton = createImageButton("C:/Users/gram/Downloads/Download@2x.png");
+        JButton saveImageButton = createImageButton("images/Download@2x.png");
 
         // 닫기 버튼 생성
         // JButton closeButton = backButton("C:/Users/gram/Downloads/X.png");
