@@ -104,6 +104,11 @@ public class ChatDetail extends JPanel {
 
         add(headerPanel, BorderLayout.NORTH);
 
+        // 메시지와 날짜를 포함할 레이어드 패널 생성
+        JLayeredPane layeredPane = new JLayeredPane();
+        layeredPane.setLayout(new BorderLayout());
+        add(layeredPane, BorderLayout.CENTER);
+
         // 메시지 리스트
         messagesPanel = new JPanel();
         messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.Y_AXIS));
@@ -212,21 +217,16 @@ public class ChatDetail extends JPanel {
         boolean isSentByMe = message.getSenderId() == currentUser.getUid();
 
         // 메시지 내용 또는 이미지 표시
-        JLabel contentLabel = null;
-        if (message.getFilePath() != null && !message.getFilePath().isEmpty()) {
-            // 이미지가 있는 경우
-            contentLabel = createImageLabel(message.getFilePath());
-            if (contentLabel != null) {
-                contentLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
-            }
-        } else {
-            // 텍스트 메시지인 경우
-            contentLabel = new JLabel(message.getMessage());
-            contentLabel.setOpaque(true);
+        JLabel contentLabel = (message.getFilePath() != null && !message.getFilePath().isEmpty())
+                ? createImageLabel(message.getFilePath())
+                : new JLabel(message.getMessage());
+
+        if (contentLabel != null) {
+            contentLabel.setOpaque(message.getFilePath() == null || message.getFilePath().isEmpty()); // 텍스트일 때만 배경색
             contentLabel.setFont(new Font("맑은 고딕", Font.PLAIN, 14));
             contentLabel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-            contentLabel.setBackground(isSentByMe ? Color.CYAN : Color.LIGHT_GRAY);
-            contentLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+            contentLabel.setBackground(isSentByMe ? Color.CYAN : Color.LIGHT_GRAY); // 보낸 메시지는 CYAN, 받은 메시지는 LIGHT_GRAY
+
         }
 
         // 메시지 라벨
@@ -243,7 +243,7 @@ public class ChatDetail extends JPanel {
         JLabel timestampLabel = new JLabel(formattedTime);
         timestampLabel.setFont(new Font("맑은 고딕", Font.ITALIC, 10));
         timestampLabel.setForeground(Color.GRAY);
-        timestampLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
+//        timestampLabel.setAlignmentX(isSentByMe ? Component.RIGHT_ALIGNMENT : Component.LEFT_ALIGNMENT);
 
         // 이미지가 포함된 경우
 //        JLabel imageLabel = null;
@@ -254,15 +254,32 @@ public class ChatDetail extends JPanel {
 //            }
 //        }
 
-        // 메시지와 타임스탬프 및 이미지를 정렬하여 추가
+        // 내부 정렬을 위한 래퍼 패널 생성
+        JPanel wrapperPanel = new JPanel();
+        wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.Y_AXIS));
+        wrapperPanel.setOpaque(false);
+
+        wrapperPanel.add(contentLabel);
+        wrapperPanel.add(timestampLabel);
+
+        // 메시지와 타임스탬프를 정렬할 패널 생성
+        JPanel messageWithTimestampPanel = new JPanel(new BorderLayout());
+        messageWithTimestampPanel.setOpaque(false);
+
+
+        // 외부 정렬을 위한 패널 생성
+        JPanel outerPanel = new JPanel();
+        outerPanel.setLayout(new BorderLayout());
+        outerPanel.setOpaque(false);
+
         if (isSentByMe) {
-            bubblePanel.add(Box.createVerticalStrut(5));
-            bubblePanel.add(contentLabel);
-            bubblePanel.add(timestampLabel);
+            outerPanel.add(wrapperPanel, BorderLayout.EAST);
         } else {
-            bubblePanel.add(contentLabel);
-            bubblePanel.add(timestampLabel);
+            outerPanel.add(wrapperPanel, BorderLayout.WEST);
         }
+
+        bubblePanel.add(outerPanel);
+
 
         return bubblePanel;
     }
