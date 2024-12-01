@@ -1264,4 +1264,84 @@ public class DatabaseServer {
         return posts;
     }
 
+    public List<User> getFollowers(long userId) {
+        List<User> followers = new ArrayList<>();
+        // 팔로워 목록: userId를 팔로우하는 사용자들
+        String query = """
+            SELECT u.* FROM user u
+            JOIN follow f ON u.uid = f.createdBy
+            WHERE f.subject = ?
+            ORDER BY u.username
+        """;
+        
+        try (Connection con = connect();
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            
+            // 쿼리 결과 확인을 위한 로그
+            System.out.println("Executing followers query for userId: " + userId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    followers.add(new User(
+                        rs.getLong("uid"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("bio"),
+                        rs.getString("email"),
+                        rs.getInt("followerCnt"),
+                        rs.getInt("followingCnt"),
+                        rs.getTimestamp("createdAt")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting followers: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        System.out.println("Found " + followers.size() + " followers");
+        return followers;
+    }
+
+    public List<User> getFollowing(long userId) {
+        List<User> following = new ArrayList<>();
+        // 팔로잉 목록: userId가 팔로우하는 사용자들
+        String query = """
+            SELECT u.* FROM user u
+            JOIN follow f ON u.uid = f.subject
+            WHERE f.createdBy = ?
+            ORDER BY u.username
+        """;
+        
+        try (Connection con = connect();
+             PreparedStatement stmt = con.prepareStatement(query)) {
+            stmt.setLong(1, userId);
+            
+            // 쿼리 결과 확인을 위한 로그
+            System.out.println("Executing following query for userId: " + userId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    following.add(new User(
+                        rs.getLong("uid"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("bio"),
+                        rs.getString("email"),
+                        rs.getInt("followerCnt"),
+                        rs.getInt("followingCnt"),
+                        rs.getTimestamp("createdAt")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getting following: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        System.out.println("Found " + following.size() + " following");
+        return following;
+    }
+
 }
