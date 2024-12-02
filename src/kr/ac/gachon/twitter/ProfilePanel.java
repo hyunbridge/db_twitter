@@ -91,9 +91,98 @@ public class ProfilePanel extends JPanel {
     }
 
     private void showEditProfileDialog() {
-        // 프로필 수정 다이얼로그 구현
         JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), "Edit Profile", true);
-        // ... 프로필 수정 UI 구현
+        dialog.setLayout(new BorderLayout());
+        dialog.setSize(400, 300);
+
+        // 입력 패널
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
+        inputPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Bio 입력
+        JLabel bioLabel = new JLabel("Bio:");
+        JTextArea bioArea = new JTextArea(currentUser.getBio());
+        bioArea.setLineWrap(true);
+        bioArea.setWrapStyleWord(true);
+        JScrollPane bioScrollPane = new JScrollPane(bioArea);
+        bioScrollPane.setPreferredSize(new Dimension(300, 100));
+
+        // 새 비밀번호 입력
+        JLabel passwordLabel = new JLabel("New Password (leave blank to keep current):");
+        JPasswordField passwordField = new JPasswordField();
+
+        // 현재 비밀번호 입력 (확인용)
+        JLabel currentPasswordLabel = new JLabel("Current Password (required):");
+        JPasswordField currentPasswordField = new JPasswordField();
+
+        // 저장 버튼
+        JButton saveButton = new JButton("Save Changes");
+        saveButton.addActionListener(e -> {
+            String currentPasswordInput = new String(currentPasswordField.getPassword());
+            
+            // 현재 비밀번호 확인
+            if (!currentPasswordInput.equals(currentUser.getPassword())) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Current password is incorrect",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 새 비밀번호 처리
+            String newPassword = new String(passwordField.getPassword());
+            String finalPassword = newPassword.isEmpty() ? currentUser.getPassword() : newPassword;
+            
+            // 프로필 업데이트
+            DatabaseServer db = new DatabaseServer();
+            boolean success = db.updateUserProfile(currentUser.getUid(), bioArea.getText(), finalPassword);
+            
+            if (success) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Profile updated successfully!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                // 세션 업데이트
+                User updatedUser = db.getUserById(String.valueOf(currentUser.getUid()));
+                if (updatedUser != null) {
+                    SessionManager.getInstance().setCurrentUser(updatedUser);
+                    this.currentUser = updatedUser;
+                    // UI 새로고침
+                    removeAll();
+                    initialize();
+                    revalidate();
+                    repaint();
+                }
+                
+                dialog.dispose();
+            } else {
+                JOptionPane.showMessageDialog(dialog,
+                    "Failed to update profile",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // 컴포넌트 추가
+        inputPanel.add(bioLabel);
+        inputPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        inputPanel.add(bioScrollPane);
+        inputPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        inputPanel.add(passwordLabel);
+        inputPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        inputPanel.add(passwordField);
+        inputPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        inputPanel.add(currentPasswordLabel);
+        inputPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        inputPanel.add(currentPasswordField);
+        inputPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        inputPanel.add(saveButton);
+
+        dialog.add(inputPanel, BorderLayout.CENTER);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     private void showMessageDialog() {
