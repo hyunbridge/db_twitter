@@ -46,22 +46,30 @@ public class DatabaseServer {
     // 이거 username이랑 password 만 비교하기
     public User authenticateUser(String username, String password) {
         String query = "SELECT uid, username, password, bio, email, followerCnt, followingCnt, createdAt " +
-                "FROM user WHERE username = ? AND password = ?";
-        try (Connection con = connect(); PreparedStatement stmt = con.prepareStatement(query)) {
+                "FROM user WHERE username = ?";
+        try (Connection con = connect();
+                PreparedStatement stmt = con.prepareStatement(query)) {
             stmt.setString(1, username);
-            stmt.setString(2, password);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    long uid = rs.getLong("uid");
-                    String bio = rs.getString("bio");
-                    String email = rs.getString("email");
-                    int followerCnt = rs.getInt("followerCnt");
-                    int followingCnt = rs.getInt("followingCnt");
-                    Timestamp createdAt = rs.getTimestamp("createdAt");
+                    String hashedPassword = rs.getString("password");
+                    // BCrypt로 비밀번호 검증
+                    if (BCrypt.checkpw(password, hashedPassword)) {
+                        long uid = rs.getLong("uid");
+                        String bio = rs.getString("bio");
+                        String email = rs.getString("email");
+                        int followerCnt = rs.getInt("followerCnt");
+                        int followingCnt = rs.getInt("followingCnt");
+                        Timestamp createdAt = rs.getTimestamp("createdAt");
 
-                    return new User(uid, username, password, bio, email, followerCnt, followingCnt, createdAt);
+                        return new User(uid, username, hashedPassword, bio, email, followerCnt, followingCnt,
+                                createdAt);
+                    }
+
                 }
+
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -177,13 +185,17 @@ public class DatabaseServer {
 
     public boolean addNewUser(User user) {
         String query = "INSERT INTO user (username, password, email, createdAt) VALUES (?, ?, ?, ?)";
-        try (Connection con = connect(); PreparedStatement stmt = con.prepareStatement(query)) {
+        try (Connection con = connect();
+                PreparedStatement stmt = con.prepareStatement(query)) {
+            // 비밀번호 해싱
+            String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+
             stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
+            stmt.setString(2, hashedPassword); // 해시된 비밀번호 저장
             stmt.setString(3, user.getEmail());
-            stmt.setTimestamp(4, user.getCreatedAt()); // 현재 시간을 createdAt으 정
+            stmt.setTimestamp(4, user.getCreatedAt());
             int rowsInserted = stmt.executeUpdate();
-            return rowsInserted > 0; // 성공적으로 추가되면 true 반환
+            return rowsInserted > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -463,7 +475,7 @@ public class DatabaseServer {
         try (Connection con = connect()) {
             con.setAutoCommit(false);
             try {
-                // commentLike 테이���에 추가
+                // commentLike 테이블에 추가
                 try (PreparedStatement stmt = con.prepareStatement(insertQuery)) {
                     stmt.setLong(1, commentId);
                     stmt.setLong(2, userId);
@@ -905,7 +917,7 @@ public class DatabaseServer {
                 """;
 
         try (Connection con = connect()) {
-            // 기존 대화 여부 확인
+            // 존 대화 여부 확인
             try (PreparedStatement checkStmt = con.prepareStatement(checkExistingChatQuery)) {
                 checkStmt.setLong(1, senderId);
                 checkStmt.setLong(2, receiverId);
@@ -1299,7 +1311,7 @@ public class DatabaseServer {
 
     public List<User> getFollowing(long userId) {
         List<User> following = new ArrayList<>();
-        // 팔로잉 목록: userId가 팔로우하는 사용자들
+        // 팔로잉 목록: userId가 팔로��하는 사용자���
         String query = """
                     SELECT u.* FROM user u
                     JOIN follow f ON u.uid = f.subject
@@ -1340,7 +1352,7 @@ public class DatabaseServer {
     private List<String> extractHashtags(String content) {
         List<String> hashtags = new ArrayList<>();
         // 정규식을 사용하여 해시태그 추출
-        // #으로 시작하고 그 뒤에 문자, 숫자, 한글이 하나 이상 오는 패턴
+        // #으 시작하고 그 뒤에 문자, 숫자, 한글이 하나 이상 오는 패턴
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("#([\\w가-힣]+)");
         java.util.regex.Matcher matcher = pattern.matcher(content);
 
@@ -1489,6 +1501,67 @@ public class DatabaseServer {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    // DatabaseServer.java에 프로필 업데이트 메서드 추가
+    public boolean updateUserProfile(long userId, String newBio, String newPassword) {
+        String query;
+        try (Connection con = connect()) {
+            if (newPassword != null && !newPassword.isEmpty()) {
+                // 새 비밀번호가 있는 경우
+                query = "UPDATE user SET bio = ?, password = ? WHERE uid = ?";
+                try (PreparedStatement stmt = con.prepareStatement(query)) {
+                    // 새 비밀번호 해싱
+                    String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+                    stmt.setString(1, newBio);
+                    stmt.setString(2, hashedPassword);
+                    stmt.setLong(3, userId);
+                    return stmt.executeUpdate() > 0;
+                }
+            } else {
+                // 비밀번호 변경 없이 bio만 업데이트
+                query = "UPDATE user SET bio = ? WHERE uid = ?";
+                try (PreparedStatement stmt = con.prepareStatement(query)) {
+                    stmt.setString(1, newBio);
+                    stmt.setLong(2, userId);
+                    return stmt.executeUpdate() > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public void migratePasswords() {
+        String selectQuery = "SELECT uid, password FROM user";
+        String updateQuery = "UPDATE user SET password = ? WHERE uid = ?";
+
+        try (Connection con = connect();
+                Statement selectStmt = con.createStatement();
+                PreparedStatement updateStmt = con.prepareStatement(updateQuery)) {
+
+            ResultSet rs = selectStmt.executeQuery(selectQuery);
+            while (rs.next()) {
+                long uid = rs.getLong("uid");
+                String oldPassword = rs.getString("password");
+
+                // 이미 BCrypt 해시인 경우 건너뛰기
+                if (oldPassword.startsWith("$2a$"))
+                    continue;
+
+                // 비밀번호 해싱
+                String hashedPassword = BCrypt.hashpw(oldPassword, BCrypt.gensalt());
+
+                // 업데이트
+                updateStmt.setString(1, hashedPassword);
+                updateStmt.setLong(2, uid);
+                updateStmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
